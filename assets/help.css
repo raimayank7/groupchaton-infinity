@@ -230,5 +230,5 @@ html[data-theme='dark'] .notice-bar{background:#2A2210;border-color:#4D3B16}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
 @media print{.site-header,.site-footer,.ad-slot,.pick,.toast,.notice-bar{display:none!important}}
 
-/* Infinity's mark is purple (matches the app icon); overrides the colour still inside older uploaded themes */
-.brand-mark [fill='#5FB34C']{fill:#A04CB3}
+/* Help's chat icon takes Help's own theme colour (Infinity's is purple); also overrides older uploaded themes */
+.brand-mark [fill='#5FB34C'],.brand-mark [fill='#A04CB3'],.brand-mark [fill='#0D9488']{fill:var(--accent)}

@@ -503,12 +503,18 @@
    Drop it and list the Infinity mark in the sizes browsers look for. */
 ;(function () {
   var b = 'https://assets.infinity.groupchaton.com/assets/brand/', head = document.head;
+  var pre = /^help\./.test(location.hostname) ? 'help-' : '';   // Help has its own teal icon
   Array.prototype.slice.call(document.querySelectorAll('link[rel~="icon"]')).forEach(function (l) {
     if (/\/favicon\.ico(\?|$)/.test(l.getAttribute('href') || '') && l.href.indexOf(b) !== 0) l.remove();
   });
+  // Help: icons the uploaded theme points at (Infinity's) switch to Help's own
+  if (pre) Array.prototype.slice.call(document.querySelectorAll('link[rel~="icon"], link[rel="apple-touch-icon"]')).forEach(function (l) {
+    var h = l.getAttribute('href') || '';
+    if (h.indexOf(b) === 0 && h.indexOf('/help-') < 0) l.href = b + (/gco-mark\.svg/.test(h) ? 'help-mark.svg' : 'help-' + h.slice(b.length));
+  });
   [['favicon-32.png', '32x32'], ['favicon-48.png', '48x48'], ['favicon-192.png', '192x192']].forEach(function (x) {
     if (head.querySelector('link[rel~="icon"][sizes="' + x[1] + '"]')) return;
-    var l = document.createElement('link'); l.rel = 'icon'; l.type = 'image/png'; l.sizes = x[1]; l.href = b + x[0]; head.appendChild(l);
+    var l = document.createElement('link'); l.rel = 'icon'; l.type = 'image/png'; l.sizes = x[1]; l.href = b + pre + x[0]; head.appendChild(l);
   });
-  if (!head.querySelector('link[rel="shortcut icon"]')) { var s = document.createElement('link'); s.rel = 'shortcut icon'; s.href = b + 'favicon.ico'; head.appendChild(s); }
+  if (!head.querySelector('link[rel="shortcut icon"]')) { var s = document.createElement('link'); s.rel = 'shortcut icon'; s.href = b + pre + 'favicon.ico'; head.appendChild(s); }
 })();
