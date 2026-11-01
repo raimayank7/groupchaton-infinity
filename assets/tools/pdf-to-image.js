@@ -12,10 +12,11 @@ GCOTools.register('pdf-to-image', function (spot, T) {
   spot.appendChild(T.card([T.dropzone({ accept: 'application/pdf,.pdf', icon: '🖼️', label: 'Choose a PDF', onFiles: load }), info, opts, status.el, results.el]));
 
   function load(files) {
-    file = files[0]; results.clear(); status.info('Opening ' + file.name + '…');
-    T.openPdf(file).then(function (d) { pdf = d; opts.hidden = false; info.textContent = file.name + ' · ' + d.numPages + ' pages'; status.clear(); }).catch(status.error);
+    file = files[0]; pdf = null; go.disabled = true; results.clear(); status.info('Opening ' + file.name + '…');
+    T.openPdf(file).then(function (d) { pdf = d; go.disabled = false; opts.hidden = false; info.textContent = file.name + ' · ' + d.numPages + ' pages'; status.clear(); }).catch(status.error);
   }
   function run() {
+    if (!pdf) return status.info(file ? 'Still opening the PDF, one moment…' : 'Choose a PDF first.');
     var list = ranges.value.trim() ? T.parseRanges(ranges.value, pdf.numPages) : T.parseRanges('1-', pdf.numPages);
     if (!list.length) return status.error('Those pages are not in this PDF.');
     var type = fmt.value(), ext = type === 'image/png' ? 'png' : 'jpg', scale = +quality.value, out = [], i = 0, base = T.baseName(file.name);

@@ -9,7 +9,7 @@
   var C = window.GCO || {};
   var BASE = C.base || '';
   // EDIT: bump this after changing any file in assets/tools/, so browsers fetch the new version straight away
-  var VERSION = '2026-11-01.1';
+  var VERSION = '2026-11-01.2';
   var doc = document;
   var T = window.GCOTools = window.GCOTools || {};
 

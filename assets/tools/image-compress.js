@@ -38,7 +38,8 @@ GCOTools.register('image-compress', function (spot, T) {
       if (i >= files.length) {
         results.set(out, 'compressed-images');
         var saved = before ? Math.round((1 - after / before) * 100) : 0;
-        status.ok('Done! ' + T.bytes(before) + ' → ' + T.bytes(after) + (saved > 0 ? ' (' + saved + '% smaller)' : '') + '.');
+        status.ok('Done! ' + T.bytes(before) + ' → ' + T.bytes(after) + (saved > 0 ? ' (' + saved + '% smaller)' : '') + '.' +
+          (saved < 5 && files.some(function (f) { return f.type === 'image/png'; }) && fmt.value === 'same' ? ' PNG is lossless, so it barely shrinks: choose JPG or WebP as the format for a much smaller file.' : ''));
         go.disabled = false; return;
       }
       var f = files[i++];
