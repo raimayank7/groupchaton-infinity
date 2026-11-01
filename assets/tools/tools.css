@@ -107,17 +107,45 @@ html[data-theme='dark'] .tstatus.is-error,html[data-theme='black'] .tstatus.is-e
 .tmeter span{display:block;height:100%;width:0;transition:width .2s,background-color .2s}
 
 /* hub + related tools */
-.thub{display:grid;gap:14px}
-.thub-search{width:100%;min-height:48px;padding:0 16px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:16px var(--ui);box-sizing:border-box}
-.thub-search:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.thub-cats{display:flex}
-.thub-grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(min(240px,100%),1fr))}
-.post-body a.thub-card{display:flex;gap:12px;align-items:flex-start;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);text-decoration:none;transition:border-color .15s,transform .15s}
-.post-body a.thub-card:hover{border-color:var(--accent);transform:translateY(-1px)}
-.thub-ic{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:12px;background:var(--accent-soft);font-size:21px}
-.thub-card b{display:flex;align-items:center;gap:6px;font:600 15px/1.3 var(--ui)}
-.thub-card small{display:block;margin-top:2px;color:var(--muted);font:13.5px/1.4 var(--ui)}
-.thub-new{font-style:normal;padding:1px 6px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font:700 10px/1.5 var(--ui)}
-.trelated{margin-top:36px}
-.trelated h2{margin:0 0 12px}
-.trelated-all{margin:12px 0 0}
+
+/* the tool hub and related tools are styled by each site's theme (infinity.css) */
+
+/* ---- options row, checkboxes, two-column grids (T.transformer and friends) ---- */
+.topts{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end}
+.topts .tfield{flex:1 1 180px;min-width:0}
+.tcheck{display:inline-flex;align-items:center;gap:8px;min-height:40px;cursor:pointer;color:var(--ink)}
+.tcheck input{width:18px;height:18px}
+.tool-app textarea.tout{background:var(--bg)}
+.tool-app h3{margin-top:4px}
+/* text compare */
+.tdiff{max-height:460px;overflow:auto;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--bg);font:13.5px/1.6 ui-monospace,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
+.tdiff:empty{display:none}
+.tdiff>div{padding:0 6px;border-radius:4px}
+.tdiff-add{background:rgba(74,222,128,.16);color:var(--ink)}
+.tdiff-del{background:rgba(255,107,138,.16);color:var(--ink);text-decoration:line-through;text-decoration-color:rgba(255,107,138,.6)}
+.tdiff-words .tdiff-add,.tdiff-words .tdiff-del{border-radius:3px;padding:0 1px}
+.tdiff-same{color:var(--muted)}
+/* fancy text */
+.tfancy{display:grid;gap:8px}
+.tfancy-row{display:grid;grid-template-columns:110px 1fr auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.tfancy-row small{color:var(--muted)}
+.tfancy-out{font-size:18px;word-break:break-word}
+@media (max-width:560px){.tfancy-row{grid-template-columns:1fr auto}.tfancy-row small{grid-column:1/-1}}
+/* key / value rows with a copy button (hash, timestamp, colour) */
+.tkv,.thashes{display:grid;gap:8px}
+.tkv>div,.thash{display:grid;grid-template-columns:120px 1fr auto;gap:12px;align-items:center;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.tkv code,.thash code{font:13px/1.5 ui-monospace,Consolas,monospace;word-break:break-all;color:var(--ink)}
+.thash.is-match{border-color:#4ADE80;box-shadow:0 0 0 1px #4ADE80}
+@media (max-width:560px){.tkv>div,.thash{grid-template-columns:1fr auto}.tkv>div>span,.thash>b{grid-column:1/-1}}
+.tbig{font-size:24px}
+/* regex tester */
+.tregex-view{margin:0;max-height:320px;overflow:auto;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--bg);font:13.5px/1.6 ui-monospace,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
+.tregex-view mark{background:rgba(250,204,21,.35);color:inherit;border-radius:3px;outline:1px solid rgba(250,204,21,.7)}
+.tregex-groups{display:grid;gap:4px;font-size:13.5px}
+.tregex-groups code{font:12.5px ui-monospace,Consolas,monospace;padding:1px 5px;border-radius:5px;background:var(--bg);border:1px solid var(--line)}
+/* markdown preview */
+.tmd-preview{min-height:280px;max-height:520px;overflow:auto;padding:4px 14px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}
+/* colour */
+.tswatch{display:grid;place-items:center;height:110px;border-radius:16px;font:700 22px ui-monospace,Consolas,monospace;border:1px solid var(--line)}
+.tshades{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
+.tshades button{height:40px;border:1px solid var(--line);border-radius:10px;cursor:pointer}

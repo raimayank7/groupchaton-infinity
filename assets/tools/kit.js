@@ -58,7 +58,11 @@
     jspdf: [CDN + 'jspdf/2.5.1/jspdf.umd.min.js', 'jspdf'],
     html2canvas: [CDN + 'html2canvas/1.4.1/html2canvas.min.js', 'html2canvas'],
     tesseract: ['https://cdn.jsdelivr.net/npm/tesseract.js@5.0.5/dist/tesseract.min.js', 'Tesseract'],
-    qrcode: [CDN + 'qrcode-generator/1.4.4/qrcode.min.js', 'qrcode']
+    qrcode: [CDN + 'qrcode-generator/1.4.4/qrcode.min.js', 'qrcode'],
+    marked: ['https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js', 'marked'],
+    purify: ['https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js', 'DOMPurify'],
+    yaml: ['https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js', 'jsyaml'],
+    terser: ['https://cdn.jsdelivr.net/npm/terser@5.31.0/dist/bundle.min.js', 'Terser']
   };
   var loading = {};
   T.loadScript = function (src) {
@@ -277,6 +281,68 @@
   };
 
   T.card = function (kids) { return h('div', { 'class': 'tool-app' }, kids); };
+
+  /* text in → text out: the shape of most text and developer tools.
+     o: { id, run(text, opts) → string (throw Error for a message), options: [elements], live: true (update as you type),
+          button: 'Format', inLabel, outLabel, placeholder, sample, mono, rows, download: 'result.txt', type: 'text/plain' }
+     Returns { input, output, update }. Options with data-opt="name" are passed to run() as opts.name. */
+  T.transformer = function (spot, o) {
+    var mono = o.mono ? ' tmono' : '';
+    var input = h('textarea', { rows: String(o.rows || 9), 'class': 'tin' + mono, placeholder: o.placeholder || 'Type or paste here…', 'aria-label': o.inLabel || 'Input', spellcheck: o.mono ? 'false' : null });
+    var output = h('textarea', { rows: String(o.rows || 9), 'class': 'tout' + mono, readonly: true, 'aria-label': o.outLabel || 'Result', spellcheck: 'false' });
+    var status = T.status();
+    input.value = T.store.get(o.id + '-in', '');
+    var seq = 0;
+    function opts() {
+      var r = {};
+      (o.options || []).forEach(function (el) {
+        Array.prototype.forEach.call([el].concat(Array.prototype.slice.call(el.querySelectorAll ? el.querySelectorAll('[data-opt]') : [])), function (x) {
+          var k = x.getAttribute && x.getAttribute('data-opt');
+          if (!k) return;
+          r[k] = x.type === 'checkbox' ? x.checked : typeof x.value === 'function' ? x.value() : x.value;
+        });
+      });
+      return r;
+    }
+    function update() {
+      T.store.set(o.id + '-in', input.value.slice(0, 200000));
+      if (!input.value) { output.value = ''; status.clear(); return; }
+      try {
+        var res = o.run(input.value, opts()), tok = ++seq;
+        if (res && typeof res.then === 'function') {   // tools that wait for a library or the browser's crypto
+          status.info('Working…');
+          res.then(function (v) { if (tok !== seq) return; output.value = v == null ? '' : String(v); if (o.note) status.info(o.note(input.value, output.value)); else status.clear(); },
+            function (e) { if (tok === seq) { output.value = ''; status.error(e); } });
+          return;
+        }
+        output.value = res == null ? '' : String(res);
+        if (o.note) status.info(o.note(input.value, output.value)); else status.clear();
+      } catch (e) { output.value = ''; status.error(e); }
+    }
+    var copy = T.button('Copy result', { onclick: function () { T.copy(output.value, copy); } });
+    var dl = T.button('Download', { onclick: function () { T.download(new Blob([output.value], { type: (o.type || 'text/plain') + ';charset=utf-8' }), o.download || 'result.txt'); } });
+    var go = o.live === false ? T.button(o.button || 'Convert', { primary: true, onclick: update }) : null;
+    var sample = o.sample ? T.button('Try a sample', { small: true, onclick: function () { input.value = o.sample; update(); } }) : null;
+    var clear = T.button('Clear', { small: true, onclick: function () { input.value = ''; update(); input.focus(); } });
+    spot.appendChild(T.card([
+      T.field(o.inLabel || 'Your text', input),
+      (o.options || []).length ? h('div', { 'class': 'topts' }, o.options) : null,
+      T.row([go, sample, clear]),
+      status.el,
+      T.field(o.outLabel || 'Result', output),
+      T.row([copy, o.download === false ? null : dl])]));
+    if (o.live !== false) input.addEventListener('input', update);
+    (o.options || []).forEach(function (el) { el.addEventListener('change', update); el.addEventListener('input', function () { if (o.live !== false) update(); }); el.addEventListener('click', function () { if (o.live !== false) setTimeout(update, 0); }); });
+    update();
+    return { input: input, output: output, update: update, status: status };
+  };
+  // a labelled checkbox / select / number for T.transformer options
+  T.opt = {
+    check: function (name, label, on) { return h('label', { 'class': 'tcheck' }, [h('input', { type: 'checkbox', 'data-opt': name, checked: on ? true : null }), ' ' + label]); },
+    select: function (name, label, options, value) { var s = T.select(options, value); s.setAttribute('data-opt', name); return T.field(label, s); },
+    text: function (name, label, value, ph) { return T.field(label, h('input', { type: 'text', 'data-opt': name, value: value || '', placeholder: ph || '' })); },
+    number: function (name, label, value, min, max) { return T.field(label, h('input', { type: 'number', 'data-opt': name, value: String(value), min: min, max: max })); }
+  };
 
   /* ---------- PDF helpers ---------- */
   T.openPdf = function (file) {
