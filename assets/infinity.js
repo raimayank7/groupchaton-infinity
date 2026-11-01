@@ -143,6 +143,21 @@
     }
   }
 
+  /* ---------- home hero: informative pill + feature cards, search that fits phones (for themes uploaded before this) ---------- */
+  (function () {
+    var hero = doc.querySelector('.inf-hero'); if (!hero) return;
+    var eb = hero.querySelector('.eyebrow');
+    if (eb && !eb.querySelector('[data-stat="cats"]')) eb.innerHTML = '<i></i><span data-stat="tools">609</span> free tools in <span data-stat="cats">22</span> categories';
+    var q = hero.querySelector('.kbar-hero');
+    if (q && !q.querySelector('.kbar-long')) {
+      var sp = q.querySelector('span'); if (sp) sp.className = 'kbar-long';
+      var sh = doc.createElement('span'); sh.className = 'kbar-short'; sh.innerHTML = 'Search <b data-stat="tools">609</b> free tools&#8230;';
+      if (sp) sp.parentNode.insertBefore(sh, sp.nextSibling);
+    }
+    var st = hero.querySelector('.inf-stats');
+    if (st) { var ul = doc.createElement('ul'); ul.className = 'inf-feats'; ul.innerHTML = '<li><svg aria-hidden="true" class="i" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><b>Private</b><span>Files are processed in your browser and never uploaded.</span></li><li><svg aria-hidden="true" class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/><path d="M3 3l18 18"/></svg><b>No sign-up</b><span>No account, no watermark, no daily limits.</span></li><li><a href="https://app.groupchaton.com/"><svg aria-hidden="true" class="i" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M12 7v7M9 11l3 3 3-3M10 18h4"/></svg><b>Install as an app</b><span>On your phone or PC. Works offline too.</span></a></li><li><a href="/p/ask-for-a-tool.html"><svg aria-hidden="true" class="i" viewBox="0 0 24 24"><path d="M21 12a8.5 8.5 0 0 1-12.4 7.6L3 21l1.4-5.6A8.5 8.5 0 1 1 21 12z"/><path d="M12 8v6M9 11h6"/></svg><b>Ask for a tool</b><span>Missing something? Tell us and we will build it.</span></a></li>'; st.parentNode.replaceChild(ul, st); }
+  })();
+
   /* ---------- live numbers on the home page ---------- */
   var stats = doc.querySelectorAll('[data-stat]');
   if (stats.length) kit().then(function (T) {
