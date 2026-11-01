@@ -498,3 +498,17 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
 })();
+
+/* Tab icon: Blogger adds its own /favicon.ico (the orange B) ahead of ours and browsers pick it.
+   Drop it and list the Infinity mark in the sizes browsers look for. */
+;(function () {
+  var b = 'https://assets.infinity.groupchaton.com/assets/brand/', head = document.head;
+  Array.prototype.slice.call(document.querySelectorAll('link[rel~="icon"]')).forEach(function (l) {
+    if (/\/favicon\.ico(\?|$)/.test(l.getAttribute('href') || '') && l.href.indexOf(b) !== 0) l.remove();
+  });
+  [['favicon-32.png', '32x32'], ['favicon-48.png', '48x48'], ['favicon-192.png', '192x192']].forEach(function (x) {
+    if (head.querySelector('link[rel~="icon"][sizes="' + x[1] + '"]')) return;
+    var l = document.createElement('link'); l.rel = 'icon'; l.type = 'image/png'; l.sizes = x[1]; l.href = b + x[0]; head.appendChild(l);
+  });
+  if (!head.querySelector('link[rel="shortcut icon"]')) { var s = document.createElement('link'); s.rel = 'shortcut icon'; s.href = b + 'favicon.ico'; head.appendChild(s); }
+})();
