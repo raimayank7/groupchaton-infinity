@@ -500,3 +500,5 @@ html[data-theme='light'] .brand-logo.is-dark,html:not([data-theme='light']) .bra
 }
 /* Home: the hero already has the search box, so the catalogue's own bar is hidden there (unless it holds a search from a link) */
 .inf-hero~.home-sec .thub-search:placeholder-shown,.inf-hero~.home-sec .thub:has(.thub-search:placeholder-shown)::before{display:none}
+/* the status line only takes space once it has a message */
+.fb-status:empty{display:none}

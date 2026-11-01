@@ -73,7 +73,7 @@ html[data-theme='dark'] .brand-mark{color:#fff}
 .icon-btn{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;text-decoration:none}
 .icon-btn:hover{background:var(--surface-2)}
 .menu-toggle{display:none}
-@media (max-width:980px){
+@media (max-width:1340px){
   .menu-toggle{display:inline-grid}
   .nav{position:fixed;top:var(--header-h);left:0;right:0;flex-direction:column;align-items:stretch;padding:10px 16px 16px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow);transform:translateY(-8px);opacity:0;pointer-events:none;transition:.2s ease}
   .nav.is-open{transform:none;opacity:1;pointer-events:auto}
@@ -237,3 +237,41 @@ html[data-theme='dark'] .notice-bar{background:#2A2210;border-color:#4D3B16}
 .brand-logo{display:block;height:38px;width:auto;max-width:none}
 html[data-theme='light'] .brand-logo.is-dark,html:not([data-theme='light']) .brand-logo.is-light{display:none}
 @media (max-width:520px){.brand-logo{height:30px}}
+/* the status line only takes space once it has a message */
+.fb-status:empty{display:none}
+
+/* ---------- section pages: intro + article cards (site.js fills them in) ---------- */
+.help-intro{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;align-items:start;margin:0 0 22px;padding:18px 20px;border-radius:18px;
+  border:1px solid var(--line);background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 12%,var(--surface)),var(--surface) 60%)}
+.help-intro-ic{grid-row:span 2;display:grid;place-items:center;width:52px;height:52px;border-radius:14px;font-size:26px;background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.help-intro p{margin:0;color:var(--ink-soft);font-size:16px;line-height:1.55}
+.help-intro ul{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 0;padding:0;list-style:none}
+.help-intro li{padding:5px 11px;border-radius:999px;font:600 13px/1.4 var(--ui);color:var(--ink-soft);background:var(--surface-2);border:1px solid var(--line)}
+.help-intro .help-intro-foot{grid-column:1/-1;margin-top:8px;font-size:14.5px;color:var(--muted)}
+.help-intro .help-intro-foot b{color:var(--ink)}
+@media (max-width:560px){.help-intro{grid-template-columns:1fr}.help-intro-ic{grid-row:auto;width:44px;height:44px;font-size:22px}}
+
+.post-list.is-cards{gap:12px}
+@media (min-width:860px){.post-list.is-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.is-cards .post-row{--cat:var(--accent);position:relative;display:grid;grid-template-columns:48px minmax(0,1fr);align-items:center;gap:14px;min-height:88px;padding:16px;
+  border-radius:16px;border:1px solid var(--line);background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.12);transition:transform .18s,box-shadow .18s,border-color .18s}
+.is-cards .post-row:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--cat) 55%,var(--line));box-shadow:0 10px 26px -14px color-mix(in srgb,var(--cat) 70%,transparent)}
+.is-cards .post-row::before{content:'';grid-column:1;grid-row:1;width:48px;height:48px;border-radius:14px;background:color-mix(in srgb,var(--ink) 8%,transparent)}
+.is-cards .post-row.is-rich::before,.is-plain .post-row::before{display:none}
+.is-cards .row-text{grid-column:2;grid-row:1;min-width:0}
+.is-cards .post-row.no-tool{grid-template-columns:minmax(0,1fr);min-height:0}.is-cards .no-tool .row-text{grid-column:1}
+.is-cards .post-row h3{margin:0;font-size:16px;line-height:1.35}
+.is-cards .post-row h3 a{color:var(--ink);text-decoration:none}
+.is-cards .post-row h3 a::after{content:'';position:absolute;inset:0;border-radius:inherit}
+.is-cards .post-row:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.row-ic{grid-column:1;grid-row:1;display:grid;place-items:center;width:48px;height:48px;border-radius:14px;font-size:24px;line-height:1;
+  background:color-mix(in srgb,var(--cat) 16%,var(--surface));border:1px solid color-mix(in srgb,var(--cat) 35%,transparent)}
+.row-cat{display:inline-block;margin:0 0 4px;padding:2px 8px;border-radius:999px;font:700 11px/1.5 var(--ui);letter-spacing:.04em;text-transform:uppercase;
+  color:color-mix(in srgb,var(--cat) 70%,var(--ink));background:color-mix(in srgb,var(--cat) 14%,transparent)}
+.row-desc{margin:4px 0 0;color:var(--muted);font-size:14px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.row-desc:empty{display:none}
+.row-go{display:none}
+.is-cards:not(.is-plain) .post-row:not(.is-rich) .row-text::after{content:'';display:block;height:12px;width:70%;margin-top:10px;border-radius:6px;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--ink) 7%,transparent),color-mix(in srgb,var(--ink) 15%,transparent),color-mix(in srgb,var(--ink) 7%,transparent));background-size:200% 100%;animation:rowShim 1.2s linear infinite}
+@keyframes rowShim{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.is-cards .post-row{transition:none}.is-cards .post-row:hover{transform:none}}

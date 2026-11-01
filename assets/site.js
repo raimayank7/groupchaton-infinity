@@ -471,6 +471,7 @@
     list.classList.add('is-cards');
     function plain() { list.classList.add('is-plain'); }
     var t = setTimeout(plain, 8000);
+    if (/^help\./.test(location.hostname)) return helpCards(rows, list, base, t, plain);
     fetch(base + 'data/tools.json?v=' + Math.floor(Date.now() / 6e5), { credentials: 'omit' }).then(function (r) { return r.json(); }).then(function (d) {
       clearTimeout(t);
       var byTitle = {}, bySlug = {}, cats = {};
@@ -492,6 +493,33 @@
         text.insertBefore(chip, text.firstChild); text.appendChild(desc);
         row.insertBefore(ic, row.firstChild); row.appendChild(go);
         row.classList.add('is-rich');
+      });
+      list.classList.add('is-ready');
+    }).catch(function () { clearTimeout(t); plain(); });
+  }
+  // help.groupchaton.com: each article gets its section's icon (or its tool's icon), the section name and its description
+  function helpCards(rows, list, base, t, plain) {
+    var v = Math.floor(Date.now() / 6e5), get = function (f) { return fetch(base + 'data/' + f + '?v=' + v, { credentials: 'omit' }).then(function (r) { return r.json(); }); };
+    var SEC = { Tools: ['🛠️', '#0D9488'], Reading: ['📖', '#7C3AED'], Comments: ['💬', '#2563EB'], ShareYourGroup: ['👥', '#16A34A'], Site: ['⚙️', '#D97706'] };
+    Promise.all([get('help.json'), get('tools.json').catch(function () { return { tools: [] }; })]).then(function (r) {
+      clearTimeout(t);
+      var byTitle = {}, tools = (r[1].tools || []).slice().sort(function (a, b) { return b.name.length - a.name.length; });
+      r[0].forEach(function (x) { byTitle[x.t.trim().toLowerCase()] = x; });
+      rows.forEach(function (row) {
+        var a = row.querySelector('h3 a'); if (!a || row.classList.contains('is-rich')) return;
+        var x = byTitle[a.textContent.trim().toLowerCase()];
+        if (!x) { row.classList.add('is-rich', 'no-tool'); return; }
+        var sec = SEC[x.l] || ['❓', '#0D9488'], icon = sec[0];
+        if (x.l === 'Tools') {   // "Speech to Text: ..." -> the Speech to Text tool's own icon
+          var low = x.t.toLowerCase();
+          for (var i = 0; i < tools.length; i++) if (low.indexOf(tools[i].name.toLowerCase()) === 0 || low.indexOf('“' + tools[i].name.toLowerCase()) === 0) { icon = tools[i].icon || icon; break; }
+        }
+        row.style.setProperty('--cat', sec[1]);
+        var ic = document.createElement('span'); ic.className = 'row-ic'; ic.setAttribute('aria-hidden', 'true'); ic.textContent = icon;
+        var chip = document.createElement('span'); chip.className = 'row-cat'; chip.textContent = x.l === 'Tools' ? 'Free tools' : x.l === 'Site' ? 'Site and ads' : x.l;
+        var desc = document.createElement('p'); desc.className = 'row-desc'; desc.textContent = x.d || '';
+        var text = row.querySelector('.row-text'); text.insertBefore(chip, text.firstChild); text.appendChild(desc);
+        row.insertBefore(ic, row.firstChild); row.classList.add('is-rich');
       });
       list.classList.add('is-ready');
     }).catch(function () { clearTimeout(t); plain(); });
@@ -541,4 +569,48 @@
   var li = d.parentNode.cloneNode(false), a = document.createElement('a');
   a.href = (help ? 'https://infinity.groupchaton.com' : '') + '/p/terms-of-use.html'; a.textContent = 'Terms of use';
   li.appendChild(a); d.parentNode.parentNode.insertBefore(li, d.parentNode.nextSibling);
+})();
+
+/* help.groupchaton.com: a short intro on each section page, ShareYourGroup as a sister-site link, and comments from the
+   same Disqus site as groupchaton.com (group4whatsapp), until the uploaded theme carries these */
+;(function () {
+  if (!/^help\./.test(location.hostname)) return;
+  // sister site in the menu, like Novels and Free tools
+  var nav = document.getElementById('nav'), sy = nav && nav.querySelector('a[href="/search/label/ShareYourGroup"]');
+  if (sy) { sy.href = 'https://www.shareyourgroup.com/'; sy.textContent = 'ShareYourGroup ↗'; nav.appendChild(sy); }
+  // comments
+  var box = document.querySelector('.help-comments'), btn = box && box.querySelector('[data-load-comments]');
+  if (btn) {
+    var b2 = btn.cloneNode(true); btn.parentNode.replaceChild(b2, btn);   // drops the old handler that asked the wrong Disqus site
+    b2.addEventListener('click', function () {
+      b2.hidden = true;
+      var url = box.getAttribute('data-url'), id = 'help-' + box.getAttribute('data-id');
+      window.disqus_config = function () { this.page.url = url; this.page.identifier = id; };
+      var sc = document.createElement('script'); sc.src = 'https://group4whatsapp.disqus.com/embed.js'; sc.setAttribute('data-timestamp', String(+new Date()));
+      document.body.appendChild(sc);
+    });
+  }
+  // section intro
+  var m = location.pathname.match(/^\/search\/label\/([^/?#]+)/), list = document.querySelector('.post-list');
+  if (!m || !list) return;
+  var L = decodeURIComponent(m[1]).replace(/\+/g, ' ');
+  var INTRO = {
+    Tools: ['🛠️', 'Step-by-step help for every free tool on Infinity: how to use it, what each option means, and how to fix the error messages people meet most often.',
+      ['How to use each tool', 'Error messages explained', 'PDF, image and voice tools', 'Calculators and converters', 'Privacy: files stay on your device']],
+    Reading: ['📖', 'Everything about reading novels on GroupChatOn: finding a story, moving between chapters, picking up where you left off and making the page comfortable to read.',
+      ['Font, size and theme', 'Continue where you left off', 'Find any chapter', 'New chapter alerts', 'Request a novel', 'Report a typo']],
+    Comments: ['💬', 'What to do when comments on a chapter or article do not appear, and how to get the comment box working on your phone or computer.',
+      ['Comments not showing', 'Fixes for phone and computer']],
+    ShareYourGroup: ['👥', 'Help for ShareYourGroup, our sister site for finding and sharing WhatsApp groups and channels: submitting a group, joining safely and reporting a bad link.',
+      ['Submit your group', 'Find and join groups', 'Bump or remove a listing', 'Report a bad group', 'Stay safe', 'Groups vs channels']],
+    Site: ['⚙️', 'How the GroupChatOn sites work, including why you see ads and how your privacy is protected.',
+      ['Why ads appear', 'Privacy and cookies']]
+  };
+  var it = INTRO[L]; if (!it || document.querySelector('.help-intro')) return;
+  var box2 = document.createElement('section'); box2.className = 'help-intro'; box2.setAttribute('aria-label', 'About this section');
+  box2.innerHTML = '<span class="help-intro-ic" aria-hidden="true">' + it[0] + '</span><p>' + it[1] + '</p><ul>' +
+    it[2].map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>' +
+    '<p class="help-intro-foot">Can’t find your answer? <a href="/search">Search all articles</a> or <a href="/p/contact-support.html"><b>contact support</b></a>, and we reply by email.' +
+    (L === 'ShareYourGroup' ? ' Visit <a href="https://www.shareyourgroup.com/">shareyourgroup.com</a>.' : '') + '</p>';
+  list.parentNode.insertBefore(box2, list);
 })();
