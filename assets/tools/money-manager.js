@@ -119,11 +119,12 @@ GCOTools.register('money-manager', function (spot, T) {
     sum, h('h3', { text: 'Monthly budget' }), h('div', { 'class': 'tgrid2' }, [T.field('Budget for each month (' + T.currency() + ')', budgetIn)]), budgetBar, budgetMsg,
     h('h3', { text: 'Where the money went' }), cats, h('h3', { text: 'Entries' }), search, list,
     T.row([T.button('Download this month (CSV / Excel)', { small: true, onclick: function () { csv(false); } }), T.button('Download all (CSV)', { small: true, onclick: function () { csv(true); } })])]));
-  draw();
+  V.ready.then(function () { budgetIn.value = V.data().budget || ''; draw(); });
 
-  T.tests['money-manager'] = function () {
-    var keep = localStorage.getItem(V.key), fails = [];
-    localStorage.removeItem(V.key); db = V.data(); month = '2026-10'; monthIn.value = month;
+  T.tests['money-manager'] = function () { return V.ready.then(test); };
+  function test() {
+    var keep = V.data(), fails = [];
+    V.save({ entries: [], budget: 0 }); db = V.data(); month = '2026-10'; monthIn.value = month;
     [['in', 5000, 'salary', 'October salary'], ['out', 1200, 'food', 'Groceries'], ['out', 300, 'travel', 'Bus pass']].forEach(function (x) {
       type = x[0]; fillCats(x[2]); amt.value = x[1]; note.value = x[3]; date.value = '2026-10-0' + (x[1] % 7 + 1); add();
     });
@@ -133,7 +134,6 @@ GCOTools.register('money-manager', function (spot, T) {
     if (t.byCat.food !== 1200) fails.push('food ' + t.byCat.food);
     if (list.querySelectorAll('.titem').length !== 3) fails.push('list shows ' + list.querySelectorAll('.titem').length);
     if (sum.textContent.indexOf('3,500') < 0) fails.push('summary lacks 3,500: ' + sum.textContent);
-    if (keep) localStorage.setItem(V.key, keep); else localStorage.removeItem(V.key);
-    return Promise.resolve({ ok: !fails.length, n: 5, fails: fails });
+    return V.save(keep).then(function () { db = V.data(); month = iso(new Date()).slice(0, 7); monthIn.value = month; draw(); return { ok: !fails.length, n: 5, fails: fails }; });
   };
 });

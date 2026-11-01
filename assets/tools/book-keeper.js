@@ -138,11 +138,12 @@ GCOTools.register('book-keeper', function (spot, T) {
     body.appendChild(h('p', { 'class': 'tnote', text: 'These details appear at the top of statements and in WhatsApp reminders.' }));
   }
   spot.appendChild(T.card([V.bar(draw), tabs, body]));
-  draw();
+  V.ready.then(draw);
 
-  T.tests['book-keeper'] = function () {
-    var keep = localStorage.getItem(V.key), fails = [];
-    localStorage.removeItem(V.key); db = V.data();
+  T.tests['book-keeper'] = function () { return V.ready.then(test); };
+  function test() {
+    var keep = V.data(), fails = [];
+    V.save({ biz: { name: '', phone: '' }, parties: [], tx: [] }); db = V.data();
     var pid = 'test1'; db.parties.push({ id: pid, name: 'Test Traders', phone: '', k: 'customer' });
     db.tx.push({ id: 'a', p: pid, d: '2026-10-01', g: 1000, n: 'Bill 1' }, { id: 'b', p: pid, d: '2026-10-10', r: 400, n: 'Cash' }, { id: 'c', p: pid, d: '2026-11-01', g: 200, n: 'Bill 2' });
     V.save(db);
@@ -153,8 +154,6 @@ GCOTools.register('book-keeper', function (spot, T) {
     if (bal(pid) !== 800) fails.push('balance ' + bal(pid));
     sel = pid; go('statement');
     if (body.textContent.indexOf('Test Traders') < 0) fails.push('statement not drawn');
-    if (keep) localStorage.setItem(V.key, keep); else localStorage.removeItem(V.key);
-    sel = null; go('parties');
-    return Promise.resolve({ ok: !fails.length, n: 5, fails: fails });
+    return V.save(keep).then(function () { sel = null; go('parties'); return { ok: !fails.length, n: 5, fails: fails }; });
   };
 });

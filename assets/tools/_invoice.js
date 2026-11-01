@@ -222,9 +222,10 @@
     var actions = h('div', {}, [T.row([T.button('Print / Save as PDF', { primary: true, onclick: print }), T.button('Save', { onclick: saveDoc }), share,
       T.button('New', { small: true, onclick: function () { doc = blank(doc.type); keep(); saved.clear(); draw(); } })]), saved.el]);
     spot.appendChild(T.card([V.bar(draw), tabs, body, h('h3', { text: 'Preview' }), paper, actions]));
-    draw();
+    V.ready.then(function () { db = V.data(); if (!T.store.get('invoice-draft-' + id, null)) doc = blank(def.type || 'inv'); draw(); });
 
-    T.tests[id] = function () {
+    T.tests[id] = function () { return V.ready.then(test); };
+    function test() {
       var fails = [], keepDoc = doc;
       doc = blank(def.type || 'inv'); doc.cur = 'INR'; doc.taxmode = 'gst-intra'; doc.roundoff = false;
       doc.items = [{ desc: 'Notebook', qty: 2, rate: 500, disc: 0, tax: 18 }, { desc: 'Pen set', qty: 1, rate: 1000, disc: 10, tax: 18 }];

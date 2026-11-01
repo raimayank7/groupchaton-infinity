@@ -9,7 +9,7 @@
   var C = window.GCO || {};
   var BASE = C.base || '';
   // EDIT: bump this after changing any file in assets/tools/, so browsers fetch the new version straight away
-  var VERSION = '2026-11-02.3';
+  var VERSION = '2026-11-02.5';
   var doc = document;
   var T = window.GCOTools = window.GCOTools || {};
 
@@ -41,10 +41,15 @@
       T.list = db.tools || [];
       // until the post list arrives, a tool's link is a search for it; then it becomes the post's own address
       T.list.forEach(function (t) { t.path = '/search?q=' + encodeURIComponent(t.name); });
+      if (C.isApp) return {};   // app.groupchaton.com: tools open inside the app (#id)
       return postPaths(1, {}).catch(function () { return {}; });
     })
     .then(function (paths) {
-      T.list.forEach(function (t) { var p = paths[t.slug] || paths['title:' + t.title]; if (p) t.path = p; });
+      T.list.forEach(function (t) {
+        var p = paths[t.slug] || paths['title:' + t.title];
+        if (p) t.path = p;
+        if (C.isApp) t.path = t.app ? '#' + t.id : (C.infinity || '') + '/search?q=' + encodeURIComponent(t.name);
+      });
       Array.prototype.forEach.call(doc.querySelectorAll('[data-tool-link]'), function (a) {
         var t = T.find(a.getAttribute('data-tool-link'));
         if (t) a.setAttribute('href', t.path);
@@ -388,31 +393,70 @@
 
 
   /* ---------- on-device storage for record-keeping tools (money manager, book keeper, invoices…) ----------
-     Data lives only in this browser (localStorage), the way a chat app keeps chats on the phone.
-     T.vault('money', emptyValue) → { data(), save(data), backup(), restore(file), bar(onChange) } */
+     Like WhatsApp Web, records live in this browser's IndexedDB: large, fast, and able to hold photos and PDFs (Blobs).
+     Each tool's records are loaded into memory once, then every change is written back.
+     var V = T.vault('money', emptyValue);  V.ready.then(draw);  V.data() → the records;  V.save(records);  V.bar(onChange) → Backup / Restore / Delete all */
+  var idb = null;
+  function db() {
+    if (!idb) idb = new Promise(function (ok, fail) {
+      if (!window.indexedDB) return fail(new Error('no IndexedDB'));
+      var r = indexedDB.open('gco-records', 1);
+      r.onupgradeneeded = function () { r.result.createObjectStore('vault'); };
+      r.onsuccess = function () { ok(r.result); };
+      r.onerror = function () { fail(r.error); };
+    });
+    return idb;
+  }
+  function idbDo(mode, fn) {
+    return db().then(function (d) {
+      return new Promise(function (ok, fail) {
+        var tx = d.transaction('vault', mode), req = fn(tx.objectStore('vault'));
+        tx.oncomplete = function () { ok(req && req.result); };
+        tx.onerror = tx.onabort = function () { fail(tx.error); };
+      });
+    });
+  }
+  T.idb = { get: function (k) { return idbDo('readonly', function (s) { return s.get(k); }); }, put: function (k, v) { return idbDo('readwrite', function (s) { return s.put(v, k); }); },
+    del: function (k) { return idbDo('readwrite', function (s) { return s['delete'](k); }); }, keys: function () { return idbDo('readonly', function (s) { return s.getAllKeys(); }); } };
+  var vaults = {};
   T.vault = function (name, empty) {
-    var key = 'gco-vault-' + name;
+    if (vaults[name]) return vaults[name];
+    var key = 'gco-vault-' + name, mem, useLocal = false;
     function fresh() { return JSON.parse(JSON.stringify(empty || {})); }
-    function data() { try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : fresh(); } catch (e) { return fresh(); } }
-    function save(d) {
-      try { localStorage.setItem(key, JSON.stringify(d)); return true; }
-      catch (e) { alert('Your browser storage is full. Download a backup, then delete old records.'); return false; }
-    }
-    // ask the browser not to clear this data when space runs low
+    mem = fresh();
+    var v = { key: key };
+    // ask the browser not to clear these records when space runs low
     if (navigator.storage && navigator.storage.persist) { try { navigator.storage.persist(); } catch (e) {} }
-    var v = { data: data, save: save, key: key };
+    v.ready = T.idb.get(key).then(function (got) {
+      if (got !== undefined) { mem = got; return; }
+      var old = null; try { old = localStorage.getItem(key); } catch (e) {}   // records saved by the first version of these tools
+      if (old) { mem = JSON.parse(old); return T.idb.put(key, mem).then(function () { try { localStorage.removeItem(key); } catch (e) {} }); }
+    }).catch(function () {   // private windows in some browsers block IndexedDB: fall back to localStorage
+      useLocal = true;
+      try { var x = localStorage.getItem(key); if (x) mem = JSON.parse(x); } catch (e) {}
+    });
+    v.data = function () { return mem; };
+    v.save = function (d) {
+      mem = d;
+      var fail = function () { alert('Your records could not be saved: the browser storage may be full. Download a backup, then delete old records.'); };
+      if (useLocal) { try { localStorage.setItem(key, JSON.stringify(d)); } catch (e) { fail(); } return Promise.resolve(); }
+      return T.idb.put(key, d).catch(fail);
+    };
+    v.clear = function () { return v.save(fresh()); };
     v.backup = function () {
-      T.download(new Blob([JSON.stringify({ tool: name, saved: new Date().toISOString(), data: data() }, null, 1)], { type: 'application/json' }),
-        name + '-backup-' + new Date().toISOString().slice(0, 10) + '.json');
+      // photos and files are saved as data URLs so one JSON file holds everything
+      return toPlain(mem).then(function (plain) {
+        T.download(new Blob([JSON.stringify({ tool: name, saved: new Date().toISOString(), data: plain }, null, 1)], { type: 'application/json' }),
+          name + '-backup-' + new Date().toISOString().slice(0, 10) + '.json');
+      });
     };
     v.restore = function (file) {
       return T.read(file, 'text').then(function (t) {
         var j = JSON.parse(t);
         if (!j || j.tool !== name || !j.data) throw new Error('This is not a backup from this tool.');
-        save(j.data); return j.data;
+        return fromPlain(j.data).then(function (d) { return v.save(d).then(function () { return d; }); });
       });
     };
-    // the "saved only on this device" strip with Backup / Restore / Delete all
     v.bar = function (onChange) {
       var file = h('input', { type: 'file', accept: '.json,application/json', hidden: true });
       file.addEventListener('change', function () {
@@ -427,12 +471,25 @@
           T.button('Restore', { small: true, onclick: function () { file.click(); } }),
           T.button('Delete all', { small: true, onclick: function () {
             if (!confirm('Delete all saved records in this tool? Download a backup first if you may need them.')) return;
-            try { localStorage.removeItem(key); } catch (e) {}
-            if (onChange) onChange();
+            v.clear().then(function () { if (onChange) onChange(); });
           } }), file])]);
     };
+    vaults[name] = v;
     return v;
   };
+  // Blobs ↔ data URLs, for backups that fit in one JSON file
+  function toPlain(x) {
+    if (x instanceof Blob) return T.read(x, 'dataURL').then(function (u) { return { __blob: u }; });
+    if (Array.isArray(x)) return Promise.all(x.map(toPlain));
+    if (x && typeof x === 'object') { var ks = Object.keys(x); return Promise.all(ks.map(function (k) { return toPlain(x[k]); })).then(function (vs) { var o = {}; ks.forEach(function (k, i) { o[k] = vs[i]; }); return o; }); }
+    return Promise.resolve(x);
+  }
+  function fromPlain(x) {
+    if (x && x.__blob) return fetch(x.__blob).then(function (r) { return r.blob(); });
+    if (Array.isArray(x)) return Promise.all(x.map(fromPlain));
+    if (x && typeof x === 'object') { var ks = Object.keys(x); return Promise.all(ks.map(function (k) { return fromPlain(x[k]); })).then(function (vs) { var o = {}; ks.forEach(function (k, i) { o[k] = vs[i]; }); return o; }); }
+    return Promise.resolve(x);
+  }
   // amount in words: lakh / crore for rupees, million / billion for other currencies
   T.words = function (n, cur) {
     cur = cur || T.currency();
@@ -515,7 +572,7 @@
     }
     T.ready.then(function () {
     var info = T.find(id);
-    if (info) {
+    if (info && !C.isApp) {
       // an ad between the tool and the guide below it (never next to the tool's buttons)
       if (C.adSlot) { var ad = C.adSlot('in-article', (C.ads || {}).inArticle); if (ad) spot.parentNode.insertBefore(ad, spot.nextSibling); }
       related(page, info);
@@ -589,14 +646,52 @@
 
   // load the stylesheet, then each tool's script
   if (!doc.getElementById('gco-tools-css')) doc.head.appendChild(h('link', { id: 'gco-tools-css', rel: 'stylesheet', href: BASE + 'assets/tools/tools.css?v=' + VERSION }));
-  T.scan = function () { $all('[data-gco-tool]').forEach(function (page) {
-    var id = page.getAttribute('data-gco-tool');
-    if (page.__mounted) return;
+  function inline(page, id) {
     if (registry[id]) return mount(page);
     if (!/^[a-z0-9-]+$/.test(id)) return;
     T.loadScript(BASE + 'assets/tools/' + id + '.js?v=' + VERSION).catch(function (e) {
       var spot = page.querySelector('.gco-tool-mount');
       if (spot) spot.appendChild(h('p', { 'class': 'tstatus is-error', text: e.message }));
+    });
+  }
+  /* A tool that keeps records (money manager, khata, invoices…) is shown from the Infinity app (C.appUrl) in a frame.
+     app.groupchaton.com and this blog are the same site to the browser, so the frame and the installed app share one set of records.
+     If the app cannot be reached, the tool runs here instead. */
+  function fromApp(page, info) {
+    page.__mounted = true;
+    var spot = page.querySelector('.gco-tool-mount') || page.insertBefore(h('div', { 'class': 'gco-tool-mount' }), page.firstChild);
+    var src = C.appUrl.replace(/\/?$/, '/') + '?embed=1#' + info.id;
+    var frame = h('iframe', { src: src, title: info.name, 'class': 'tapp-frame', loading: 'eager', allow: 'clipboard-write; camera; microphone' });
+    var ready = false;
+    function onMsg(e) {
+      if (e.source !== frame.contentWindow || !e.data || !e.data.gcoApp) return;
+      if (e.data.gcoApp === 'ready') ready = true;
+      if (e.data.gcoApp === 'height') frame.style.height = Math.max(400, Math.min(6000, +e.data.h || 0)) + 'px';
+    }
+    window.addEventListener('message', onMsg);
+    spot.innerHTML = '';
+    spot.appendChild(frame);
+    spot.appendChild(h('p', { 'class': 'tapp-note' }, ['🔒 Your records are saved only on this device. ',
+      h('a', { href: C.appUrl.replace(/\/?$/, '/') + '#' + info.id, target: '_blank', rel: 'noopener', text: 'Open it as an app (works offline) →' })]));
+    setTimeout(function () {
+      if (ready) return;
+      window.removeEventListener('message', onMsg);
+      page.__mounted = false; spot.innerHTML = '';
+      inline(page, info.id);
+    }, 12000);
+    if (C.adSlot) { var ad = C.adSlot('in-article', (C.ads || {}).inArticle); if (ad) spot.parentNode.insertBefore(ad, spot.nextSibling); }
+    related(page, info);
+    structured(info);
+  }
+  T.scan = function () { $all('[data-gco-tool]').forEach(function (page) {
+    var id = page.getAttribute('data-gco-tool');
+    if (page.__mounted || page.__waiting) return;
+    if (!C.appUrl || C.isApp || id === 'hub') return inline(page, id);
+    page.__waiting = true;
+    T.ready.then(function () {
+      page.__waiting = false;
+      var info = T.find(id);
+      if (info && info.app) fromApp(page, info); else inline(page, id);
     });
   }); };
   T.scan();
