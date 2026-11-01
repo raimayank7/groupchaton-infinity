@@ -460,3 +460,41 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', add); else add();
 })();
+
+/* Post lists (home "Newest tools", search, labels): each plain title row becomes a tool card with the tool's icon,
+   category, one-line description and an Open button, from data/tools.json. Rows shimmer until the details arrive. */
+;(function () {
+  function go() {
+    var rows = Array.prototype.slice.call(document.querySelectorAll('.post-list .post-row'));
+    if (!rows.length) return;
+    var list = rows[0].parentNode, base = (window.GCO || {}).base || '';
+    list.classList.add('is-cards');
+    function plain() { list.classList.add('is-plain'); }
+    var t = setTimeout(plain, 8000);
+    fetch(base + 'data/tools.json?v=' + Math.floor(Date.now() / 6e5), { credentials: 'omit' }).then(function (r) { return r.json(); }).then(function (d) {
+      clearTimeout(t);
+      var byTitle = {}, bySlug = {}, cats = {};
+      (d.categories || []).forEach(function (c) { cats[c.id] = c; });
+      (d.tools || []).forEach(function (x) { byTitle[(x.title || '').trim().toLowerCase()] = x; if (x.slug) bySlug[x.slug] = x; });
+      rows.forEach(function (row) {
+        var a = row.querySelector('h3 a'); if (!a || row.classList.contains('is-rich')) return;
+        var slug = (a.pathname.split('/').pop() || '').replace(/\.html$/, '');
+        var x = byTitle[a.textContent.trim().toLowerCase()] || bySlug[slug];
+        if (!x) { row.classList.add('is-rich', 'no-tool'); return; }
+        var c = cats[x.cat] || {};
+        row.style.setProperty('--cat', c.color || 'var(--accent)');
+        var ic = document.createElement('span'); ic.className = 'row-ic'; ic.setAttribute('aria-hidden', 'true'); ic.textContent = x.icon || c.icon || '•';
+        var chip = document.createElement('span'); chip.className = 'row-cat'; chip.textContent = (c.icon ? '' : '') + (c.label || c.name || x.cat || '');
+        var desc = document.createElement('p'); desc.className = 'row-desc'; desc.textContent = x.desc || '';
+        var go = document.createElement('span'); go.className = 'row-go'; go.setAttribute('aria-hidden', 'true'); go.innerHTML = 'Open <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+        a.textContent = x.name || a.textContent; a.title = x.title || '';
+        var text = row.querySelector('.row-text');
+        text.insertBefore(chip, text.firstChild); text.appendChild(desc);
+        row.insertBefore(ic, row.firstChild); row.appendChild(go);
+        row.classList.add('is-rich');
+      });
+      list.classList.add('is-ready');
+    }).catch(function () { clearTimeout(t); plain(); });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+})();
