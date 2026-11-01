@@ -9,7 +9,7 @@
   var C = window.GCO || {};
   var BASE = C.base || '';
   // EDIT: bump this after changing any file in assets/tools/, so browsers fetch the new version straight away
-  var VERSION = '2026-11-02.1';
+  var VERSION = '2026-11-02.3';
   var doc = document;
   var T = window.GCOTools = window.GCOTools || {};
 
@@ -384,6 +384,81 @@
     var a = Math.abs(n);
     if (a !== 0 && (a >= 1e15 || a < 1e-6)) return n.toExponential(Math.min(dp == null ? 6 : dp, 10)).replace('e+', ' × 10^').replace('e-', ' × 10^-');
     return n.toLocaleString(locFor(T.currency()), { maximumFractionDigits: dp == null ? (a >= 1000 ? 2 : a >= 1 ? 4 : 8) : dp });
+  };
+
+
+  /* ---------- on-device storage for record-keeping tools (money manager, book keeper, invoices…) ----------
+     Data lives only in this browser (localStorage), the way a chat app keeps chats on the phone.
+     T.vault('money', emptyValue) → { data(), save(data), backup(), restore(file), bar(onChange) } */
+  T.vault = function (name, empty) {
+    var key = 'gco-vault-' + name;
+    function fresh() { return JSON.parse(JSON.stringify(empty || {})); }
+    function data() { try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : fresh(); } catch (e) { return fresh(); } }
+    function save(d) {
+      try { localStorage.setItem(key, JSON.stringify(d)); return true; }
+      catch (e) { alert('Your browser storage is full. Download a backup, then delete old records.'); return false; }
+    }
+    // ask the browser not to clear this data when space runs low
+    if (navigator.storage && navigator.storage.persist) { try { navigator.storage.persist(); } catch (e) {} }
+    var v = { data: data, save: save, key: key };
+    v.backup = function () {
+      T.download(new Blob([JSON.stringify({ tool: name, saved: new Date().toISOString(), data: data() }, null, 1)], { type: 'application/json' }),
+        name + '-backup-' + new Date().toISOString().slice(0, 10) + '.json');
+    };
+    v.restore = function (file) {
+      return T.read(file, 'text').then(function (t) {
+        var j = JSON.parse(t);
+        if (!j || j.tool !== name || !j.data) throw new Error('This is not a backup from this tool.');
+        save(j.data); return j.data;
+      });
+    };
+    // the "saved only on this device" strip with Backup / Restore / Delete all
+    v.bar = function (onChange) {
+      var file = h('input', { type: 'file', accept: '.json,application/json', hidden: true });
+      file.addEventListener('change', function () {
+        if (!file.files[0]) return;
+        v.restore(file.files[0]).then(function () { if (onChange) onChange(); alert('Backup restored.'); }, function (e) { alert(e.message); });
+        file.value = '';
+      });
+      return h('div', { 'class': 'tvault' }, [
+        h('span', { 'class': 'tvault-msg' }, [h('b', { text: '🔒 Saved only on this device. ' }), 'Nothing is uploaded. Download a backup now and then, and before clearing your browser.']),
+        h('span', { 'class': 'tvault-act' }, [
+          T.button('Backup', { small: true, onclick: v.backup }),
+          T.button('Restore', { small: true, onclick: function () { file.click(); } }),
+          T.button('Delete all', { small: true, onclick: function () {
+            if (!confirm('Delete all saved records in this tool? Download a backup first if you may need them.')) return;
+            try { localStorage.removeItem(key); } catch (e) {}
+            if (onChange) onChange();
+          } }), file])]);
+    };
+    return v;
+  };
+  // amount in words: lakh / crore for rupees, million / billion for other currencies
+  T.words = function (n, cur) {
+    cur = cur || T.currency();
+    var ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    var tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+    function two(x) { return x < 20 ? ones[x] : tens[Math.floor(x / 10)] + (x % 10 ? '-' + ones[x % 10] : ''); }
+    function three(x) { return (x >= 100 ? ones[Math.floor(x / 100)] + ' Hundred' + (x % 100 ? ' ' : '') : '') + (x % 100 ? two(x % 100) : ''); }
+    function whole(x) {
+      if (x === 0) return 'Zero';
+      var out = [];
+      if (cur === 'INR' || cur === 'NPR' || cur === 'PKR' || cur === 'BDT') {
+        if (x >= 1e9) { out.push(whole(Math.floor(x / 1e7)).replace(/^Zero$/, '') + ' Crore'); x %= 1e7; }
+        [[1e7, 'Crore'], [1e5, 'Lakh'], [1e3, 'Thousand']].forEach(function (p) { if (x >= p[0]) { out.push(two(Math.floor(x / p[0])) + ' ' + p[1]); x %= p[0]; } });
+        if (x) out.push(three(x));
+      } else {
+        [[1e12, 'Trillion'], [1e9, 'Billion'], [1e6, 'Million'], [1e3, 'Thousand']].forEach(function (p) { if (x >= p[0]) { out.push(three(Math.floor(x / p[0])) + ' ' + p[1]); x %= p[0]; } });
+        if (x) out.push(three(x));
+      }
+      return out.join(' ');
+    }
+    var NAMES = { INR: ['Rupees', 'Paise'], USD: ['Dollars', 'Cents'], EUR: ['Euros', 'Cents'], GBP: ['Pounds', 'Pence'], AED: ['Dirhams', 'Fils'], SAR: ['Riyals', 'Halalas'],
+      PKR: ['Rupees', 'Paisa'], BDT: ['Taka', 'Poisha'], NPR: ['Rupees', 'Paisa'], LKR: ['Rupees', 'Cents'], CAD: ['Dollars', 'Cents'], AUD: ['Dollars', 'Cents'], SGD: ['Dollars', 'Cents'] };
+    var nm = NAMES[cur] || [cur, 'Cents'];
+    n = Math.round(Math.abs(n) * 100);
+    var c = n % 100;
+    return nm[0] + ' ' + whole(Math.floor(n / 100)) + (c ? ' and ' + two(c) + ' ' + nm[1] : '') + ' Only';
   };
 
   /* ---------- PDF helpers ---------- */

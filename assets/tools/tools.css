@@ -24,7 +24,7 @@
 .tfield{display:grid;gap:6px;min-width:0;align-content:start}
 .tfield-label{font:600 13.5px/1.3 var(--ui);color:var(--ink-soft)}
 .tfield small{color:var(--muted);font-size:12.5px}
-.tool-app input[type='text'],.tool-app input[type='url'],.tool-app input[type='number'],.tool-app input[type='search'],.tool-app input[type='tel'],.tool-app select{height:46px}
+.tool-app input[type='text'],.tool-app input[type='url'],.tool-app input[type='date'],.tool-app input[type='month'],.tool-app input[type='time'],.tool-app input[type='email'],.tool-app input[type='password'],.tool-app input[type='number'],.tool-app input[type='search'],.tool-app input[type='tel'],.tool-app select{height:46px}
 .tool-app input[type='text'],.tool-app input[type='url'],.tool-app input[type='number'],.tool-app input[type='search'],.tool-app input[type='tel'],.tool-app select,.tool-app textarea{width:100%;min-height:44px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:15px/1.45 var(--ui);box-sizing:border-box}
 .tool-app textarea{min-height:160px;resize:vertical}
 .tool-app input:focus,.tool-app select:focus,.tool-app textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
@@ -174,3 +174,33 @@ html[data-theme='dark'] .tstatus.is-error,html[data-theme='black'] .tstatus.is-e
 .tool-app th:first-child,.tool-app td:first-child{text-align:left}
 .tool-app thead th{position:sticky;top:0;background:var(--surface-2);font-weight:700}
 .tnote{margin:0;color:var(--ink-soft)}
+
+/* ---------- on-device record tools (T.vault) ---------- */
+.tvault{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;padding:10px 12px;border-radius:14px;background:var(--accent-soft);font-size:13.5px;color:var(--ink-soft)}
+.tvault-act{display:flex;flex-wrap:wrap;gap:6px}
+.tsum{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr))}
+.tsum div{padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--bg)}
+.tsum span{display:block;font-size:12.5px;color:var(--muted);font-weight:600}
+.tsum b{font:800 21px/1.25 var(--ui);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tin-c{color:#16a34a}.tout-c{color:#dc2626}
+html[data-theme='dark'] .tin-c,html[data-theme='black'] .tin-c{color:#4ade80}html[data-theme='dark'] .tout-c,html[data-theme='black'] .tout-c{color:#f87171}
+.tlist{display:grid;gap:6px}
+.tday{font:700 13px/1.3 var(--ui);color:var(--muted);margin:10px 0 2px;display:flex;justify-content:space-between;gap:8px}
+.titem{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.titem-ic{width:34px;height:34px;flex:none;border-radius:10px;display:grid;place-items:center;background:var(--surface-2);font-size:17px}
+.titem-main{flex:1;min-width:0}.titem-main b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.titem-main small{color:var(--muted)}
+.titem-amt{font:700 15px/1.2 var(--ui);font-variant-numeric:tabular-nums;white-space:nowrap}
+.titem button{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:15px;padding:4px 6px;border-radius:8px}
+.titem button:hover{background:var(--surface-2);color:var(--ink)}
+.ttabs{display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.ttabs button{min-height:38px;padding:0 14px;border-radius:10px;border:1px solid transparent;background:transparent;color:var(--ink-soft);font:600 14px var(--ui);cursor:pointer}
+.ttabs button[aria-selected='true']{background:var(--accent-soft);color:var(--ink);border-color:var(--line)}
+.tpaper{background:#fff;color:#111;border-radius:12px;padding:clamp(14px,3vw,28px);box-shadow:0 1px 4px rgba(0,0,0,.15);overflow:auto;font:13.5px/1.45 system-ui,'Segoe UI',sans-serif}
+.tpaper table{color:#111}.tpaper thead th{background:#f3f4f6!important;color:#111}.tpaper td,.tpaper th{border-bottom:1px solid #e5e7eb}
+.titems-edit{display:grid;gap:8px}
+.titems-edit .trow-item{display:grid;grid-template-columns:minmax(140px,3fr) repeat(4,minmax(70px,1fr)) auto;gap:6px;align-items:center}
+@media (max-width:640px){.titems-edit .trow-item{grid-template-columns:1fr 1fr;padding:8px;border:1px solid var(--line);border-radius:12px}.titems-edit .trow-item>:first-child{grid-column:1/-1}}
+
+.tpaper *{color:inherit}
+.tpaper b,.tpaper strong{font-weight:700}
+.tool-app input[type='date'],.tool-app input[type='month'],.tool-app input[type='time']{color-scheme:light dark}
