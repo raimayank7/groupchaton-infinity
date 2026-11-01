@@ -522,7 +522,7 @@
 ;(function () {
   var a = document.querySelector('.site-header a.brand');
   if (!a || a.querySelector('.brand-logo')) return;
-  var u = 'https://assets.infinity.groupchaton.com/assets/brand/', n = /^help\./.test(location.hostname) ? ['help', 532] : ['infinity', 552];
+  var u = 'https://assets.infinity.groupchaton.com/assets/brand/', n = /^help\./.test(location.hostname) ? ['help', 518] : ['infinity', 540];
   a.innerHTML = ['light', 'dark'].map(function (t) {
     return '<img alt="" class="brand-logo is-' + t + '" height="100" width="' + n[1] + '" src="' + u + n[0] + '-logo-' + t + '.png">';
   }).join('');
