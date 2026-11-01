@@ -527,3 +527,18 @@
     return '<img alt="" class="brand-logo is-' + t + '" height="100" width="' + n[1] + '" src="' + u + n[0] + '-logo-' + t + '.png">';
   }).join('');
 })();
+
+/* Footer policy links (until the themes carry them): Infinity adds Terms of use; Help uses its own Privacy Policy and
+   Disclaimer instead of groupchaton.com's, plus the Terms of use */
+;(function () {
+  var f = document.querySelector('footer'); if (!f) return;
+  var help = /^help\./.test(location.hostname);
+  if (help) Array.prototype.slice.call(f.querySelectorAll('a[href^="https://www.groupchaton.com/p/privacy-policy"], a[href^="https://www.groupchaton.com/p/disclaimer"]')).forEach(function (a) {
+    a.setAttribute('href', a.getAttribute('href').replace('https://www.groupchaton.com', ''));
+  });
+  if (f.querySelector('a[href*="terms-of-use"]')) return;
+  var d = f.querySelector('a[href$="/p/disclaimer.html"]'); if (!d || !d.parentNode) return;
+  var li = d.parentNode.cloneNode(false), a = document.createElement('a');
+  a.href = (help ? 'https://infinity.groupchaton.com' : '') + '/p/terms-of-use.html'; a.textContent = 'Terms of use';
+  li.appendChild(a); d.parentNode.parentNode.insertBefore(li, d.parentNode.nextSibling);
+})();
