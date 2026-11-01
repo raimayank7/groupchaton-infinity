@@ -9,7 +9,7 @@
   var C = window.GCO || {};
   var BASE = C.base || '';
   // EDIT: bump this after changing any file in assets/tools/, so browsers fetch the new version straight away
-  var VERSION = '2026-11-01.2';
+  var VERSION = '2026-11-02.1';
   var doc = document;
   var T = window.GCOTools = window.GCOTools || {};
 
@@ -26,7 +26,10 @@
         var list = (d && d.feed && d.feed.entry) || [];
         list.forEach(function (e) {
           var link = (e.link || []).filter(function (l) { return l.rel === 'alternate'; })[0];
-          if (link) { var path = link.href.replace(/^https?:\/\/[^/]+/, ''); acc[path.replace(/^.*\//, '').replace(/\.html$/, '')] = path; }
+          if (!link) return;
+          var path = link.href.replace(/^https?:\/\/[^/]+/, '');
+          acc[path.replace(/^.*\//, '').replace(/\.html$/, '')] = path;
+          if (e.title) acc['title:' + e.title.$t] = path;   // posts imported in bulk get their address from the title
         });
         return list.length === 500 ? postPaths(start + 500, acc) : acc;
       });
@@ -41,7 +44,7 @@
       return postPaths(1, {}).catch(function () { return {}; });
     })
     .then(function (paths) {
-      T.list.forEach(function (t) { if (paths[t.slug]) t.path = paths[t.slug]; });
+      T.list.forEach(function (t) { var p = paths[t.slug] || paths['title:' + t.title]; if (p) t.path = p; });
       Array.prototype.forEach.call(doc.querySelectorAll('[data-tool-link]'), function (a) {
         var t = T.find(a.getAttribute('data-tool-link'));
         if (t) a.setAttribute('href', t.path);
@@ -342,6 +345,45 @@
     select: function (name, label, options, value) { var s = T.select(options, value); s.setAttribute('data-opt', name); return T.field(label, s); },
     text: function (name, label, value, ph) { return T.field(label, h('input', { type: 'text', 'data-opt': name, value: value || '', placeholder: ph || '' })); },
     number: function (name, label, value, min, max) { return T.field(label, h('input', { type: 'number', 'data-opt': name, value: String(value), min: min, max: max })); }
+  };
+
+
+  /* ---------- engines: one script draws many tools from a short description ----------
+     A tool file calls  GCOTools.engine('calc', 'emi', { ...description... })  and _calc.js does the rest. */
+  T.engines = {};
+  T.tests = {};   // id → function returning a Promise of { ok, fails: [] } (used by our own test runs)
+  T.engine = function (name, id, def) {
+    var go = function () { T.register(id, function (spot, T, page) { return T.engines[name](spot, T, def, id, page); }); };
+    if (T.engines[name]) return go();
+    T.loadScript(BASE + 'assets/tools/_' + name + '.js?v=' + VERSION).then(go, function (e) {
+      $all('[data-gco-tool="' + id + '"] .gco-tool-mount').forEach(function (s) { s.appendChild(h('p', { 'class': 'tstatus is-error', text: e.message })); });
+    });
+  };
+
+  /* ---------- numbers and money for a global audience ---------- */
+  var LANG = (navigator.languages && navigator.languages[0]) || navigator.language || 'en-US';
+  var REGION_CUR = { IN: 'INR', US: 'USD', GB: 'GBP', IE: 'EUR', DE: 'EUR', FR: 'EUR', ES: 'EUR', IT: 'EUR', NL: 'EUR', BE: 'EUR', AT: 'EUR', PT: 'EUR', FI: 'EUR', GR: 'EUR',
+    CA: 'CAD', AU: 'AUD', NZ: 'NZD', AE: 'AED', SA: 'SAR', QA: 'QAR', KW: 'KWD', OM: 'OMR', BH: 'BHD', PK: 'PKR', BD: 'BDT', NP: 'NPR', LK: 'LKR', SG: 'SGD', MY: 'MYR',
+    ID: 'IDR', PH: 'PHP', TH: 'THB', VN: 'VND', JP: 'JPY', CN: 'CNY', HK: 'HKD', KR: 'KRW', TW: 'TWD', ZA: 'ZAR', NG: 'NGN', KE: 'KES', EG: 'EGP', GH: 'GHS', TR: 'TRY',
+    RU: 'RUB', UA: 'UAH', PL: 'PLN', SE: 'SEK', NO: 'NOK', DK: 'DKK', CH: 'CHF', CZ: 'CZK', HU: 'HUF', RO: 'RON', IL: 'ILS', MX: 'MXN', BR: 'BRL', AR: 'ARS', CL: 'CLP', CO: 'COP', PE: 'PEN' };
+  T.CURRENCIES = ['USD', 'EUR', 'GBP', 'INR', 'AED', 'SAR', 'PKR', 'BDT', 'NPR', 'LKR', 'CAD', 'AUD', 'NZD', 'SGD', 'MYR', 'IDR', 'PHP', 'THB', 'VND', 'JPY', 'CNY', 'HKD', 'KRW',
+    'ZAR', 'NGN', 'KES', 'EGP', 'GHS', 'TRY', 'RUB', 'UAH', 'PLN', 'SEK', 'NOK', 'DKK', 'CHF', 'CZK', 'ILS', 'QAR', 'KWD', 'OMR', 'BHD', 'MXN', 'BRL', 'ARS', 'CLP', 'COP', 'PEN'];
+  T.currency = function (set) {
+    if (set) { T.store.set('currency', set); return set; }
+    return T.store.get('currency', null) || REGION_CUR[(LANG.split('-')[1] || '').toUpperCase()] || 'USD';
+  };
+  function locFor(cur) { return cur === 'INR' ? 'en-IN' : LANG; }   // lakh / crore grouping for rupees
+  T.money = function (n, cur) {
+    cur = cur || T.currency();
+    if (!isFinite(n)) return '—';
+    try { return new Intl.NumberFormat(locFor(cur), { style: 'currency', currency: cur, maximumFractionDigits: Math.abs(n) >= 1000 ? 0 : 2 }).format(n); }
+    catch (e) { return cur + ' ' + T.num(n, 2); }
+  };
+  T.num = function (n, dp) {
+    if (typeof n !== 'number' || !isFinite(n)) return n === Infinity ? '∞' : '—';
+    var a = Math.abs(n);
+    if (a !== 0 && (a >= 1e15 || a < 1e-6)) return n.toExponential(Math.min(dp == null ? 6 : dp, 10)).replace('e+', ' × 10^').replace('e-', ' × 10^-');
+    return n.toLocaleString(locFor(T.currency()), { maximumFractionDigits: dp == null ? (a >= 1000 ? 2 : a >= 1 ? 4 : 8) : dp });
   };
 
   /* ---------- PDF helpers ---------- */

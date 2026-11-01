@@ -149,3 +149,28 @@ html[data-theme='dark'] .tstatus.is-error,html[data-theme='black'] .tstatus.is-e
 .tswatch{display:grid;place-items:center;height:110px;border-radius:16px;font:700 22px ui-monospace,Consolas,monospace;border:1px solid var(--line)}
 .tshades{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
 .tshades button{height:40px;border:1px solid var(--line);border-radius:10px;cursor:pointer}
+/* ---------- calculator engine (_calc.js) ---------- */
+.tcalc-wide{grid-column:1/-1}
+.tcalc-h{grid-column:1/-1;margin:6px 0 -4px!important;font-size:15px!important;color:var(--ink-soft)}
+.tcalc-suffix{display:flex;align-items:center;gap:8px}.tcalc-suffix em{font-style:normal;color:var(--muted);font-size:13.5px;white-space:nowrap}
+.tcalc-cur{max-width:200px}
+.tcalc-out{display:grid;gap:12px}
+.tcalc-main{display:grid;gap:2px;padding:16px 18px;border-radius:16px;background:var(--accent-soft);border:1px solid var(--line)}
+.tcalc-main:empty{display:none}
+.tcalc-main span{font:600 13.5px/1.3 var(--ui);color:var(--ink-soft)}
+.tcalc-main b{font:800 clamp(26px,5vw,38px)/1.15 var(--ui);color:var(--ink);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tcalc-main small{color:var(--muted)}
+.tcalc-rows .tstat b{font-size:19px;overflow-wrap:anywhere}
+.tcalc-strip{display:flex;height:14px;border-radius:99px;overflow:hidden;background:var(--surface-2)}
+.tcalc-strip i{display:block;height:100%}
+.tcalc-key{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:13px;color:var(--ink-soft)}
+.tcalc-key span{display:inline-flex;align-items:center;gap:6px}.tcalc-key i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.tcalc-bars:empty,.tcalc-table:empty{display:none}
+.tcalc-note{margin:0;color:var(--ink-soft);font-size:14px}
+.tcalc-details summary{cursor:pointer;font-weight:600;padding:6px 0}
+.tcalc-scroll{overflow:auto;max-height:420px;border:1px solid var(--line);border-radius:12px}
+.tool-app table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.tool-app th,.tool-app td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.tool-app th:first-child,.tool-app td:first-child{text-align:left}
+.tool-app thead th{position:sticky;top:0;background:var(--surface-2);font-weight:700}
+.tnote{margin:0;color:var(--ink-soft)}
