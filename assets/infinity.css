@@ -498,3 +498,5 @@ html[data-theme='light'] .brand-logo.is-dark,html:not([data-theme='light']) .bra
   .brand-logo{height:24px}
   .inf-hero .eyebrow{font-size:11.5px;padding:6px 12px}
 }
+/* Home: the hero already has the search box, so the catalogue's own bar is hidden there (unless it holds a search from a link) */
+.inf-hero~.home-sec .thub-search:placeholder-shown,.inf-hero~.home-sec .thub:has(.thub-search:placeholder-shown)::before{display:none}
