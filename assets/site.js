@@ -518,3 +518,12 @@
   });
   if (!head.querySelector('link[rel="shortcut icon"]')) { var s = document.createElement('link'); s.rel = 'shortcut icon'; s.href = b + pre + 'favicon.ico'; head.appendChild(s); }
 })();
+/* Header logo: the wordmark picture with Infinity's purple sign (or Help's teal lifebuoy), until the theme carries it */
+;(function () {
+  var a = document.querySelector('.site-header a.brand');
+  if (!a || a.querySelector('.brand-logo')) return;
+  var u = 'https://assets.infinity.groupchaton.com/assets/brand/', n = /^help\./.test(location.hostname) ? ['help', 532] : ['infinity', 552];
+  a.innerHTML = ['light', 'dark'].map(function (t) {
+    return '<img alt="" class="brand-logo is-' + t + '" height="100" width="' + n[1] + '" src="' + u + n[0] + '-logo-' + t + '.png">';
+  }).join('');
+})();
