@@ -1,0 +1,372 @@
+/* GroupChatOn Tools — site script (infinity.groupchaton.com)
+   Designed & Developed by Nivesh Sahayak (https://www.niveshsahayak.in/). All rights reserved: see LICENSE.
+   What it does:
+   - Pages from GitHub: a Blogger page holds only <div data-gco-page="privacy-policy">short fallback</div>;
+     the real content is assets/pages/privacy-policy.html in this repo
+   - Light / dark switch, menu, ad slots, sponsored cards, "Ask for a tool" form
+   - Tool posts: a post holds <div class="gco-page" data-gco-tool="pdf-merge"> ... </div>; assets/tools/kit.js
+     loads that tool's code, the related tools and the tool catalogue */
+(function () {
+  'use strict';
+  var PBASE = (window.GCO || {}).base || '';
+
+  /* scripts added with innerHTML don't run: recreate them one by one, in order */
+  function runScripts(box, done) {
+    var list = Array.prototype.slice.call(box.querySelectorAll('script'));
+    (function next() {
+      var old = list.shift();
+      if (!old) return done();
+      var s = document.createElement('script');
+      Array.prototype.forEach.call(old.attributes, function (a) { s.setAttribute(a.name, a.value); });
+      if (old.src) { s.onload = s.onerror = next; } else { s.text = old.text; }
+      old.parentNode.replaceChild(s, old);
+      if (!old.src) next();
+    })();
+  }
+
+  function loadPages(done) {
+    var slots = document.querySelectorAll('[data-gco-page]'), left = slots.length;
+    if (!left) return done();
+    Array.prototype.forEach.call(slots, function (el) {
+      el.classList.add('is-loading');   // shimmer skeleton (site.css) until the content arrives
+      fetch(PBASE + 'assets/pages/' + el.getAttribute('data-gco-page') + '.html', { cache: 'no-cache' })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+        .then(function (html) {
+          el.innerHTML = html;
+          el.classList.add('is-loaded');   // sections fade up one after another
+          return new Promise(function (res) { runScripts(el, res); });
+        })
+        .catch(function () {})   // keep the fallback text from the Blogger page
+        .then(function () { el.classList.remove('is-loading'); if (--left === 0) done(); });
+    });
+  }
+
+  function siteMain() {
+  var C = window.GCO || {};
+  var BASE = C.base || '';
+  var doc = document, html = doc.documentElement, body = doc.body;
+  var PATH = location.pathname.replace(/\/+$/, '') || '/';
+
+  /* ---------- small helpers ---------- */
+  function $(s, r) { return (r || doc).querySelector(s); }
+  function $$(s, r) { return Array.prototype.slice.call((r || doc).querySelectorAll(s)); }
+  function el(tag, attrs, kids) {
+    var n = doc.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      if (k === 'text') n.textContent = attrs[k];
+      else if (k === 'html') n.innerHTML = attrs[k];
+      else if (k.slice(0, 2) === 'on') n.addEventListener(k.slice(2), attrs[k]);
+      else if (attrs[k] !== null && attrs[k] !== undefined && attrs[k] !== false) n.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (c) { if (c) n.appendChild(typeof c === 'string' ? doc.createTextNode(c) : c); });
+    return n;
+  }
+  var store = {
+    get: function (k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  function icon(d) { return '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + d + '</svg>'; }
+  var ICON_X = '<path d="M6 6l12 12M18 6 6 18"/>';
+
+  /* ---------- light / dark ('auto' follows the device) ---------- */
+  var darkMQ = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
+  var theme = store.get('gct-theme', 'auto');
+  function applyTheme() {
+    var t = theme === 'auto' ? (darkMQ && darkMQ.matches ? 'dark' : 'light') : theme;
+    html.setAttribute('data-theme', t);
+    var meta = $('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', getComputedStyle(body).backgroundColor);
+  }
+  if (darkMQ && darkMQ.addEventListener) darkMQ.addEventListener('change', function () { if (theme === 'auto') applyTheme(); });
+  applyTheme();
+  $$('[data-theme-toggle]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      theme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      store.set('gct-theme', theme);
+      applyTheme();
+    });
+  });
+
+  /* ---------- sheets (the "Ask for a tool" form on phones) ---------- */
+  var backdrop = el('div', { 'class': 'sheet-backdrop', onclick: closeSheets });
+  body.appendChild(backdrop);
+  function makeSheet(id, title) {
+    var s = el('section', { 'class': 'sheet', id: id, role: 'dialog', 'aria-modal': 'true', 'aria-label': title, tabindex: '-1' }, [
+      el('div', { 'class': 'sheet-head' }, [
+        el('h2', { text: title }),
+        el('button', { type: 'button', 'class': 'icon-btn', 'aria-label': 'Close', html: icon(ICON_X), onclick: closeSheets })
+      ]),
+      el('div', { 'class': 'sheet-body' })
+    ]);
+    body.appendChild(s);
+    return s;
+  }
+  var lastFocus;
+  function openSheet(s) {
+    closeSheets();
+    lastFocus = doc.activeElement;
+    s.classList.add('is-open');
+    backdrop.classList.add('is-open');
+    s.focus();
+  }
+  function closeSheets() {
+    var open = $$('.sheet.is-open');
+    open.forEach(function (s) { s.classList.remove('is-open'); });
+    backdrop.classList.remove('is-open');
+    if (open.length && lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  doc.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSheets(); });
+
+  /* ---------- header: menu + hide while scrolling down ---------- */
+  var header = $('.site-header'), nav = $('#nav'), menuBtn = $('#menuToggle');
+  if (menuBtn && nav) menuBtn.addEventListener('click', function () {
+    var open = nav.classList.toggle('is-open');
+    menuBtn.setAttribute('aria-expanded', String(open));
+  });
+  var lastY = window.scrollY;
+  window.addEventListener('scroll', function () {
+    var y = window.scrollY;
+    if (header && !(nav && nav.classList.contains('is-open'))) {
+      if (y > lastY + 6 && y > 240) header.classList.add('is-hidden');
+      else if (y < lastY - 6 || y < 120) header.classList.remove('is-hidden');
+    }
+    lastY = y;
+  }, { passive: true });
+  // the menu link for this page's category stays highlighted
+  $$('#nav a').forEach(function (a) { if (a.getAttribute('href') === PATH || (PATH !== '/' && decodeURIComponent(PATH) === decodeURIComponent(a.getAttribute('href')))) a.setAttribute('aria-current', 'page'); });
+  $$('[data-year]').forEach(function (n) { n.textContent = new Date().getFullYear(); });
+
+  /* ======================================================================
+     Ads: slots are filled only when they come near the screen
+     ====================================================================== */
+  var A = C.ads || {};
+  var adsBlocked = false;
+  var adObserver = 'IntersectionObserver' in window ? new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (e.isIntersecting) { adObserver.unobserve(e.target); fillAd(e.target); } });
+  }, { rootMargin: '600px 0px' }) : null;
+  function adSlot(kind, slotId) {
+    if (!C.adClient || !slotId) return null;
+    var d = el('div', { 'class': 'ad-slot ' + kind, 'data-slot': slotId, 'data-kind': kind });
+    if (adsBlocked) return pickFor(kind) || d;   // .no-ads hides d
+    if (adObserver) adObserver.observe(d); else setTimeout(function () { fillAd(d); }, 0);
+    return d;
+  }
+  function fillAd(d) {
+    var ins = el('ins', { 'class': 'adsbygoogle', 'data-ad-client': C.adClient, 'data-ad-slot': d.getAttribute('data-slot') });
+    var kind = d.getAttribute('data-kind');
+    if (kind === 'in-article') { ins.setAttribute('data-ad-layout', 'in-article'); ins.setAttribute('data-ad-format', 'fluid'); ins.style.textAlign = 'center'; }
+    else if (kind === 'multiplex') ins.setAttribute('data-ad-format', 'autorelaxed');
+    else ins.setAttribute('data-ad-format', 'auto');
+    if (kind !== 'in-article' && kind !== 'multiplex') ins.setAttribute('data-full-width-responsive', 'false');
+    ins.style.display = 'block';
+    d.appendChild(ins);
+    // when Google has no ad for it, a sponsored card takes the slot, or it collapses
+    if (window.MutationObserver) new MutationObserver(function (m, o) {
+      var st = ins.getAttribute('data-ad-status');
+      if (st === 'unfilled') { if (!pickInto(d)) d.classList.add('is-empty'); o.disconnect(); }
+      else if (st === 'filled') o.disconnect();
+    }).observe(ins, { attributes: true, attributeFilter: ['data-ad-status'] });
+    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+  }
+  C.adSlot = adSlot;   // kit.js puts one between the tool and its guide
+  if (C.adClient) {
+    var anchorChecks = 0, anchorTimer = setInterval(function () {
+      var a = doc.querySelector('ins.adsbygoogle[data-anchor-status="displayed"], ins.adsbygoogle[data-anchor-shown="true"]');
+      html.classList.toggle('has-anchor', !!(a && a.getBoundingClientRect().top > window.innerHeight / 2));
+      if (++anchorChecks > 40) clearInterval(anchorTimer);
+    }, 1500);
+  }
+
+  /* ======================================================================
+     Sponsored cards: your own promo cards from the hidden "Sponsored cards" gadget (theme.xml).
+     They take ad spaces Google leaves empty or an ad blocker hides, never more than C.picksMax
+     on a page. Cards for Indian offers show only to visitors in India.
+     ====================================================================== */
+  var INDIA_OFFER = /phon\.pe|phonepe\.com|gpay\.app|pay\.google\.com|airtel\.in|buildwealth\.in|₹/i;
+  var picks = (function () {
+    var src = $('#picks-src'), box = src && ($('.widget-content', src) || src), code = box ? box.innerHTML.trim() : '';
+    if (src) src.parentNode.removeChild(src);
+    if (!code) return [];
+    var t = doc.createElement('template');   // a template, so no banner loads until its card is shown
+    t.innerHTML = code;
+    var kids = [].slice.call(t.content.children);
+    if (!kids.length || !kids.every(function (k) { return k.tagName === 'DIV'; })) {
+      var one = doc.createElement('div');
+      one.appendChild(t.content);
+      kids = [one];
+    }
+    var india = false;
+    try { india = /^Asia\/(Kolkata|Calcutta)$/.test(Intl.DateTimeFormat().resolvedOptions().timeZone); } catch (e) {}
+    return kids.filter(function (k) {
+      var only = (k.getAttribute('data-only') || '').toLowerCase();
+      return india || !(only ? only === 'in' : INDIA_OFFER.test(k.innerHTML));
+    });
+  })();
+  // ad blockers hide well-known names like promo-banner and cta-btn, so the cards are renamed
+  var PICK_CLASS = { 'promo-banner': 'pk-img', 'promo-ic': 'pk-ic', 'promo-title': 'pk-title', 'promo-line': 'pk-line', 'cta-btn': 'pk-btn' };
+  var picksMax = C.picksMax == null ? 2 : C.picksMax, picksShown = 0;
+  var pickTurn = Math.floor(Math.random() * Math.max(picks.length, 1));
+  function pickCard(where) {
+    if (!picks.length || picksShown >= Math.min(picksMax, picks.length)) return null;
+    var card = picks[pickTurn++ % picks.length].cloneNode(true);
+    picksShown++;
+    $$('[class]', card).forEach(function (n) {
+      n.setAttribute('class', n.getAttribute('class').split(/\s+/).map(function (c) { return PICK_CLASS[c] || c; }).join(' '));
+    });
+    var imgs = $$('img.pk-img', card);
+    if (imgs.length > 1) {
+      var keep = Math.floor(Math.random() * imgs.length);
+      imgs.forEach(function (img, i) { if (i !== keep) { var a = img.closest('a') || img; a.parentNode.removeChild(a); } });
+    }
+    var d = el('div', { 'class': 'pick pick-' + where, 'data-label': card.getAttribute('data-label') || 'Sponsored' });
+    while (card.firstChild) d.appendChild(card.firstChild);
+    return d;
+  }
+  function pickFor(kind) { return kind === 'in-article' || kind === 'ad-end' ? pickCard(kind) : null; }
+  function pickInto(slot) {
+    if (!slot.parentNode) return false;
+    var card = pickFor(slot.getAttribute('data-kind'));
+    if (!card) return false;
+    if (adObserver) adObserver.unobserve(slot);
+    slot.parentNode.replaceChild(card, slot);
+    return true;
+  }
+
+  /* ======================================================================
+     "Ask for a tool": sends through Blogger's own contact form (hidden on every page),
+     so requests reach your email. Shown inside the Ask for a Tool page ([data-tool-request]),
+     and as a pop-up from any [data-feedback] link.
+     ====================================================================== */
+  var CF = {
+    name: $('.contact-form-name'), email: $('.contact-form-email'), msg: $('.contact-form-email-message'),
+    send: $('.contact-form-button-submit'), ok: $('.contact-form-success-message'), err: $('.contact-form-error-message')
+  };
+  var hasCF = !!(CF.email && CF.msg && CF.send && CF.ok && CF.err);
+  var fbSheet = null, fbBusy = false;
+  function field(label, input, hint) {
+    return el('label', { 'class': 'fb-field' }, [el('span', { text: label }), input, hint ? el('small', { text: hint }) : null]);
+  }
+  function requestForm(onSent) {
+    var me = store.get('gct-contact', {});
+    var form = el('form', { 'class': 'fb-form', novalidate: 'novalidate' }), f = {};
+    f.tool = el('input', { type: 'text', maxlength: '200', required: 'required', placeholder: 'e.g. PDF to Word converter' });
+    form.appendChild(field('Which tool would help you?', f.tool));
+    f.note = el('textarea', { rows: '4', maxlength: '1200', placeholder: 'What should it do? Which file types? Any site you use for it now?' });
+    form.appendChild(field('Details (optional)', f.note));
+    f.name = el('input', { type: 'text', maxlength: '80', autocomplete: 'name' });
+    f.name.value = me.name || '';
+    f.email = el('input', { type: 'email', maxlength: '120', autocomplete: 'email', required: 'required' });
+    f.email.value = me.email || '';
+    form.appendChild(el('div', { 'class': 'fb-row' }, [field('Your name (optional)', f.name), field('Your email', f.email)]));
+    form.appendChild(el('p', { 'class': 'fb-note', text: 'We only use your email to tell you when the tool is ready.' }));
+    var btn = el('button', { type: 'submit', 'class': 'btn btn-primary fb-send', text: 'Send my request' });
+    var status = el('p', { 'class': 'fb-status', role: 'status', 'aria-live': 'polite' });
+    form.appendChild(btn);
+    form.appendChild(status);
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (fbBusy) return;
+      function fail(msg, input) { status.className = 'fb-status is-error'; status.textContent = msg; if (input) input.focus(); }
+      if (!f.tool.value.trim()) return fail('Tell us which tool you need.', f.tool);
+      var email = f.email.value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('Add a valid email so we can reply.', f.email);
+      if (!hasCF) return fail('The form could not load. Please try again in a moment.');
+      store.set('gct-contact', { name: f.name.value.trim(), email: email });
+      fbBusy = true;
+      btn.disabled = true;
+      status.className = 'fb-status';
+      status.textContent = 'Sending…';
+      if (CF.name) CF.name.value = f.name.value.trim();
+      CF.email.value = email;
+      CF.msg.value = ['[Tool request] ' + f.tool.value.trim(), 'From: ' + location.href, '', 'Details: ' + (f.note.value.trim() || '-')].join('\n');
+      CF.ok.textContent = '';
+      CF.err.textContent = '';
+      var started = Date.now();
+      var timer = setInterval(function () {
+        var ok = CF.ok.textContent.trim(), err = CF.err.textContent.trim();
+        if (ok) {
+          done();
+          status.className = 'fb-status is-ok';
+          status.textContent = 'Thanks! Your request is in. We’ll email you when the tool is ready.';
+          f.tool.value = '';
+          f.note.value = '';
+          if (onSent) onSent();
+        } else if (err) { done(); fail(err); }
+        else if (Date.now() - started > 15000) { done(); fail('Couldn’t send just now. Please try again in a minute.'); }
+      }, 300);
+      function done() { clearInterval(timer); fbBusy = false; btn.disabled = false; }
+      CF.send.click();
+    });
+    return { form: form, first: f.tool };
+  }
+  // the Ask for a Tool page: the form sits in the page
+  $$('[data-tool-request]').forEach(function (box) { box.innerHTML = ''; box.appendChild(requestForm().form); });
+  // anywhere else: a pop-up
+  doc.addEventListener('click', function (e) {
+    var t = e.target.closest && e.target.closest('[data-feedback]');
+    if (!t || !hasCF) return;
+    e.preventDefault();
+    if (nav) nav.classList.remove('is-open');
+    if (!fbSheet) fbSheet = makeSheet('ask-tool', 'Ask for a tool');
+    var b = $('.sheet-body', fbSheet), r = requestForm(function () { setTimeout(closeSheets, 2200); });
+    b.innerHTML = '';
+    b.appendChild(r.form);
+    openSheet(fbSheet);
+    setTimeout(function () { r.first.focus(); }, 260);
+  });
+
+  /* ======================================================================
+     Page types
+     ====================================================================== */
+  var article = $('article.post');
+  var ORIGIN = location.origin;
+  function addJsonLd(graph) {
+    doc.head.appendChild(el('script', { type: 'application/ld+json', text: JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }) }));
+  }
+  // breadcrumbs for search engines: Home › Category › Tool
+  if (article) {
+    var title = ($('.post-title', article) || {}).textContent || doc.title;
+    var cat = $('.post-labels a', article), items = [['Tools', '/']];
+    if (cat) items.push([cat.textContent.trim(), cat.getAttribute('href').replace(ORIGIN, '')]);
+    items.push([title.trim(), PATH]);
+    addJsonLd([{ '@type': 'BreadcrumbList', itemListElement: items.map(function (it, i) {
+      return { '@type': 'ListItem', position: i + 1, name: it[0], item: ORIGIN + it[1] }; }) }]);
+    if (cat) { var cr = $('.crumb', article); if (cr) cr.appendChild(el('a', { href: cat.getAttribute('href'), text: cat.textContent.trim() })); }
+    var end = adSlot('ad-end', A.end);
+    if (end) article.appendChild(end);
+  }
+  // label and search pages: title from the address
+  var listTitle = $('.list-title');
+  if (listTitle && body.classList.contains('is-list')) {
+    var labelM = PATH.match(/^\/search\/label\/(.+)$/), q = new URLSearchParams(location.search).get('q');
+    listTitle.textContent = labelM ? decodeURIComponent(labelM[1]).replace(/\+/g, ' ') + ' tools' : q ? 'Results for “' + q + '”' : 'All tools';
+    listTitle.hidden = false;
+  }
+  var homeAd = $('#home-ad');
+  if (homeAd) { var ha = adSlot('ad-end', A.home); if (ha) homeAd.appendChild(ha); }
+
+  // tools: the kit loads each tool's code only where it is used (posts, home catalogue, related tools)
+  if ($('[data-gco-tool]')) doc.body.appendChild(el('script', { src: BASE + 'assets/tools/kit.js?v=' + Math.floor(Date.now() / 6e5), async: 'async' }));
+
+  /* ---------- ad-blocker appeal under the header ---------- */
+  window.addEventListener('load', function () {
+    if (!C.adClient) return;
+    setTimeout(function () {
+      if (window.adsbygoogle && window.adsbygoogle.loaded) return;
+      html.classList.add('no-ads');   // ads blocked: close up the empty ad boxes, sponsored cards take some of them
+      adsBlocked = true;
+      $$('.ad-slot').forEach(pickInto);
+      if (Date.now() < store.get('gct-adnote', 0)) return;
+      var bar = el('div', { 'class': 'notice-bar notice-ads', role: 'note' }, [el('div', { 'class': 'container notice-inner' }, [
+        el('span', { 'class': 'notice-ic', 'aria-hidden': 'true', text: '💚' }),
+        el('div', { 'class': 'notice-text' }, [el('b', { text: 'Ads keep these tools free' }),
+          el('span', { text: 'We keep ads light and every tool runs on your own device. Please allow ads on this site.' })]),
+        el('button', { type: 'button', 'class': 'icon-btn', 'aria-label': 'Close', html: icon(ICON_X), onclick: function () {
+          store.set('gct-adnote', Date.now() + 7 * 864e5); bar.remove(); } })])]);
+      if (header && header.parentNode) header.parentNode.insertBefore(bar, header.nextSibling);
+    }, 3500);
+  });
+  }
+
+  loadPages(siteMain);
+})();
