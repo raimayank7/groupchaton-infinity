@@ -70,7 +70,7 @@
 
   /* ---------- light / dark ('auto' follows the device) ---------- */
   var darkMQ = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
-  var theme = store.get('gct-theme', 'auto');
+  var theme = store.get('gct-theme', C.defaultTheme || 'auto');   // infinity starts dark; help follows the device
   function applyTheme() {
     var t = theme === 'auto' ? (darkMQ && darkMQ.matches ? 'dark' : 'light') : theme;
     html.setAttribute('data-theme', t);

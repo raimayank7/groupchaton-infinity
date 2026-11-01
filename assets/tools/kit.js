@@ -1,57 +1,53 @@
-/* GroupChatOn Tools (infinity.groupchaton.com) — loader + shared kit
+/* Infinity by GroupChatOn (infinity.groupchaton.com) — tool loader + shared kit
    Designed & Developed by Nivesh Sahayak (https://www.niveshsahayak.in/). All rights reserved: see LICENSE.
    A Blogger post becomes a tool with:  <div class="gco-page" data-gco-tool="pdf-merge"> ... <div class="gco-tool-mount"></div> ... </div>
    site.js loads this file; this file loads tools.css and tools/<id>.js, which calls GCOTools.register(). */
 (function () {
   'use strict';
+  // loaded twice (site.js and the ⌘K search both ask for it): the second time only mounts tools added since
+  if (window.GCOTools && window.GCOTools.scan) { window.GCOTools.scan(); return; }
   var C = window.GCO || {};
   var BASE = C.base || '';
   // EDIT: bump this after changing any file in assets/tools/, so browsers fetch the new version straight away
-  var VERSION = '2026-10-23.3';
+  var VERSION = '2026-11-01.1';
   var doc = document;
   var T = window.GCOTools = window.GCOTools || {};
 
-  /* ---------- the tool catalogue (hub page, related tools, structured data) ---------- */
-  T.list = [
-    { id: 'pdf-merge', name: 'Merge PDF', slug: 'merge-pdf', cat: 'PDF', icon: '🧩', desc: 'Join several PDFs into one, in any order.' },
-    { id: 'pdf-split', name: 'Split PDF', slug: 'split-pdf', cat: 'PDF', icon: '✂️', desc: 'Pull out pages or split every page into its own file.' },
-    { id: 'pdf-organize', name: 'PDF Organizer', slug: 'pdf-organizer', cat: 'PDF', icon: '🗂️', desc: 'Rotate, delete and reorder PDF pages.', isNew: true },
-    { id: 'pdf-to-image', name: 'PDF to Image', slug: 'pdf-to-image', cat: 'PDF', icon: '🖼️', desc: 'Turn PDF pages into JPG or PNG pictures.' },
-    { id: 'pdf-to-text', name: 'PDF to Text', slug: 'pdf-to-text', cat: 'PDF', icon: '📝', desc: 'Copy all the text out of a PDF.' },
-    { id: 'image-to-pdf', name: 'Image to PDF', slug: 'image-to-pdf', cat: 'PDF', icon: '📄', desc: 'Make one PDF from your photos or scans.' },
-    { id: 'text-to-pdf', name: 'Text to PDF', slug: 'text-to-pdf', cat: 'PDF', icon: '📃', desc: 'Type or paste text and save it as a PDF.' },
-    { id: 'html-to-pdf', name: 'HTML to PDF', slug: 'html-to-pdf', cat: 'PDF', icon: '🌐', desc: 'Turn HTML code into a PDF document.' },
-    { id: 'image-convert', name: 'Image Converter', slug: 'image-converter', cat: 'Image', icon: '🔁', desc: 'Convert images to JPG, PNG or WebP in bulk.' },
-    { id: 'image-compress', name: 'Image Compressor', slug: 'image-compressor', cat: 'Image', icon: '🗜️', desc: 'Shrink and resize photos without visible loss.', isNew: true },
-    { id: 'ocr', name: 'Image to Text (OCR)', slug: 'image-to-text', cat: 'Image', icon: '🔍', desc: 'Read the text inside photos and screenshots.' },
-    { id: 'qr', name: 'QR Code Generator', slug: 'qr-code-generator', cat: 'Links', icon: '🔳', desc: 'Make a QR code for any link or text.' },
-    { id: 'shorten', name: 'URL Shortener', slug: 'url-shortener', cat: 'Links', icon: '🔗', desc: 'Turn long links into short ones.' },
-    { id: 'whatsapp-direct', name: 'WhatsApp Direct Message', slug: 'whatsapp-direct-message', cat: 'Links', icon: '💬', desc: 'Message a number without saving it.' },
-    { id: 'zip', name: 'Zip & Unzip', slug: 'zip-unzip', cat: 'Files', icon: '📦', desc: 'Pack files into a ZIP, or open a ZIP.' },
-    { id: 'tts', name: 'Text to Speech', slug: 'text-to-speech', cat: 'Text & Voice', icon: '🔊', desc: 'Listen to any text read aloud.' },
-    { id: 'stt', name: 'Speech to Text', slug: 'speech-to-text', cat: 'Text & Voice', icon: '🎙️', desc: 'Speak and get the words typed for you.' },
-    { id: 'word-count', name: 'Word Counter', slug: 'word-counter', cat: 'Text & Voice', icon: '🔢', desc: 'Count words, characters and reading time.', isNew: true },
-    { id: 'case', name: 'Case Converter', slug: 'case-converter', cat: 'Text & Voice', icon: '🔠', desc: 'UPPER, lower, Title and Sentence case in one click.', isNew: true },
-    { id: 'password', name: 'Password Generator', slug: 'password-generator', cat: 'Security', icon: '🔐', desc: 'Strong random passwords, made on your device.', isNew: true }
-  ];
-  // until the post list arrives, a tool's link is a search for it; then it becomes the post's own address
-  T.list.forEach(function (t) { t.path = '/search?q=' + encodeURIComponent(t.name); });
-  T.ready = fetch('/feeds/posts/summary?alt=json&max-results=150', { credentials: 'omit' })
-    .then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (d) {
-      ((d && d.feed && d.feed.entry) || []).forEach(function (e) {
-        var link = (e.link || []).filter(function (l) { return l.rel === 'alternate'; })[0];
-        if (!link) return;
-        var path = link.href.replace(/^https?:\/\/[^/]+/, '');
-        T.list.forEach(function (t) { if (path.slice(-(t.slug.length + 6)) === '/' + t.slug + '.html') t.path = path; });
+  /* ---------- the tool database: data/tools.json (built from scripts/catalog.py) ---------- */
+  T.list = [];
+  T.cats = [];
+  T.find = function (id) { return T.list.filter(function (t) { return t.id === id; })[0]; };
+  T.cat = function (id) { return T.cats.filter(function (c) { return c.id === id; })[0] || { id: id, name: id, label: id, icon: '•', color: '#888' }; };
+  // every published post, read from the blog's feed 500 at a time: tool slug → its address (/yyyy/mm/slug.html)
+  function postPaths(start, acc) {
+    return fetch('/feeds/posts/summary?alt=json&max-results=500&start-index=' + start, { credentials: 'omit' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        var list = (d && d.feed && d.feed.entry) || [];
+        list.forEach(function (e) {
+          var link = (e.link || []).filter(function (l) { return l.rel === 'alternate'; })[0];
+          if (link) { var path = link.href.replace(/^https?:\/\/[^/]+/, ''); acc[path.replace(/^.*\//, '').replace(/\.html$/, '')] = path; }
+        });
+        return list.length === 500 ? postPaths(start + 500, acc) : acc;
       });
+  }
+  T.ready = fetch(BASE + 'data/tools.json?v=' + Math.floor(Date.now() / 6e5), { credentials: 'omit' })
+    .then(function (r) { if (!r.ok) throw new Error('Tool list ' + r.status); return r.json(); })
+    .then(function (db) {
+      T.cats = db.categories || [];
+      T.list = db.tools || [];
+      // until the post list arrives, a tool's link is a search for it; then it becomes the post's own address
+      T.list.forEach(function (t) { t.path = '/search?q=' + encodeURIComponent(t.name); });
+      return postPaths(1, {}).catch(function () { return {}; });
+    })
+    .then(function (paths) {
+      T.list.forEach(function (t) { if (paths[t.slug]) t.path = paths[t.slug]; });
       Array.prototype.forEach.call(doc.querySelectorAll('[data-tool-link]'), function (a) {
         var t = T.find(a.getAttribute('data-tool-link'));
         if (t) a.setAttribute('href', t.path);
       });
     })
-    .catch(function () {});
-  T.find = function (id) { return T.list.filter(function (t) { return t.id === id; })[0]; };
+    .catch(function (e) { if (window.console) console.warn('Infinity: tool list not loaded', e); });
 
   /* ---------- libraries (fixed versions) ---------- */
   var CDN = 'https://cdnjs.cloudflare.com/ajax/libs/';
@@ -334,68 +330,91 @@
       spot.appendChild(h('p', { 'class': 'tstatus is-error', text: 'This tool could not start: ' + e.message }));
       if (window.console) console.error(e);
     }
+    T.ready.then(function () {
     var info = T.find(id);
     if (info) {
       // an ad between the tool and the guide below it (never next to the tool's buttons)
       if (C.adSlot) { var ad = C.adSlot('in-article', (C.ads || {}).inArticle); if (ad) spot.parentNode.insertBefore(ad, spot.nextSibling); }
-      T.ready.then(function () { related(page, info); });
+      related(page, info);
       structured(info);
     }
+    });
   }
   function related(page, info) {
     var same = T.list.filter(function (t) { return t.id !== info.id && t.cat === info.cat; });
     var other = T.list.filter(function (t) { return t.id !== info.id && t.cat !== info.cat; });
     var picks = same.concat(other).slice(0, 6);
     page.appendChild(h('section', { 'class': 'trelated' }, [
-      h('h2', { text: 'More free tools' }),
+      h('h2', { text: 'More ' + T.cat(info.cat).name + ' tools and more' }),
       h('div', { 'class': 'thub-grid' }, picks.map(card)),
       h('p', { 'class': 'trelated-all' }, [h('a', { href: '/', text: 'See all ' + T.list.length + ' tools →' })])]));
   }
   function card(t) {
-    return h('a', { 'class': 'thub-card', href: t.path, 'data-tool-link': t.id }, [
+    var c = T.cat(t.cat);
+    return h('a', { 'class': 'thub-card', href: t.path, 'data-tool-link': t.id, 'data-cat': t.cat, style: '--cc:' + c.color }, [
       h('span', { 'class': 'thub-ic', 'aria-hidden': 'true', text: t.icon }),
       h('span', {}, [h('b', {}, [t.name, t.isNew ? h('em', { 'class': 'thub-new', text: 'NEW' }) : null]), h('small', { text: t.desc })])]);
   }
   T.toolCard = card;
   function structured(info) {
     var s = h('script', { type: 'application/ld+json' });
-    s.textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': 'WebApplication', name: info.name + ' — GroupChatOn Tools',
+    s.textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': 'WebApplication', name: info.name + ' — Infinity by GroupChatOn',
       url: location.origin + location.pathname, applicationCategory: 'UtilitiesApplication', operatingSystem: 'Any (runs in your browser)',
       description: info.desc, offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' } });
     doc.head.appendChild(s);
   }
 
-  // the tools hub page
+  // the tool hub (home page and category pages): search + category chips + cards
   T.register('hub', function (spot) {
-    var cats = ['All'];
-    T.list.forEach(function (t) { if (cats.indexOf(t.cat) < 0) cats.push(t.cat); });
-    var q = h('input', { type: 'search', 'class': 'thub-search', placeholder: 'Search ' + T.list.length + ' free tools…', 'aria-label': 'Search tools' });
-    var cat = 'All', grid = h('div', { 'class': 'thub-grid' });
-    var chips = T.seg(cats.map(function (c) { return [c, c]; }), 'All', function (v) { cat = v; draw(); });
-    chips.classList.add('thub-cats');
-    function draw() {
-      var s = q.value.trim().toLowerCase();
-      grid.innerHTML = '';
-      var shown = T.list.filter(function (t) {
-        return (cat === 'All' || t.cat === cat) && (!s || (t.name + ' ' + t.desc + ' ' + t.cat).toLowerCase().indexOf(s) >= 0);
-      });
-      shown.forEach(function (t) { grid.appendChild(card(t)); });
-      if (!shown.length) grid.appendChild(h('p', { 'class': 'tstatus', text: 'No tool matches “' + q.value + '”.' }));
-    }
-    q.addEventListener('input', draw);
-    spot.appendChild(h('div', { 'class': 'thub' }, [q, chips, grid]));
-    draw();
+    T.ready.then(function () {
+      var label = (location.pathname.match(/^\/search\/label\/([^/?#]+)/) || [])[1];
+      label = label ? decodeURIComponent(label).replace(/\+/g, ' ') : '';
+      var cat = (T.cats.filter(function (c) { return c.label === label; })[0] || {}).id || 'all';
+      var q = h('input', { type: 'search', 'class': 'thub-search', placeholder: 'Search ' + T.list.length + ' free tools…', 'aria-label': 'Search tools' });
+      var startQ = new URLSearchParams(location.search).get('q');
+      if (startQ && !label) q.value = startQ;
+      var chips = h('div', { 'class': 'thub-cats', role: 'tablist', 'aria-label': 'Categories' });
+      var grid = h('div', { 'class': 'thub-grid' });
+      var count = h('p', { 'class': 'thub-count', role: 'status', 'aria-live': 'polite' });
+      function chip(id, name, icon, color, n) {
+        return h('button', { type: 'button', role: 'tab', 'class': 'thub-chip', 'data-cat': id, style: color ? '--cc:' + color : null,
+          'aria-selected': String(cat === id), onclick: function () { cat = id; draw(); } }, [h('span', { 'aria-hidden': 'true', text: icon }), name, h('em', { text: String(n) })]);
+      }
+      function draw() {
+        var s = q.value.trim().toLowerCase();
+        chips.innerHTML = '';
+        chips.appendChild(chip('all', 'All', '∞', '', T.list.length));
+        T.cats.forEach(function (c) {
+          var n = T.list.filter(function (t) { return t.cat === c.id; }).length;
+          if (n) chips.appendChild(chip(c.id, c.name, c.icon, c.color, n));
+        });
+        grid.innerHTML = '';
+        var words = s.split(/\s+/).filter(Boolean);
+        var shown = T.list.filter(function (t) {
+          var hay = (t.name + ' ' + t.desc + ' ' + T.cat(t.cat).name + ' ' + (t.keywords || []).join(' ')).toLowerCase();
+          return (cat === 'all' || t.cat === cat) && words.every(function (w) { return hay.indexOf(w) >= 0; });
+        });
+        shown.forEach(function (t) { grid.appendChild(card(t)); });
+        count.textContent = shown.length + (shown.length === 1 ? ' tool' : ' tools');
+        if (!shown.length) grid.appendChild(h('p', { 'class': 'tstatus', html: 'No tool matches “' + h('b', { text: q.value }).outerHTML + '” yet. <a href="/p/ask-for-a-tool.html" data-feedback="tool">Ask for it</a> and we’ll build it.' }));
+      }
+      q.addEventListener('input', draw);
+      spot.appendChild(h('div', { 'class': 'thub' }, [q, chips, count, grid]));
+      draw();
+    });
   });
 
   // load the stylesheet, then each tool's script
   if (!doc.getElementById('gco-tools-css')) doc.head.appendChild(h('link', { id: 'gco-tools-css', rel: 'stylesheet', href: BASE + 'assets/tools/tools.css?v=' + VERSION }));
-  $all('[data-gco-tool]').forEach(function (page) {
+  T.scan = function () { $all('[data-gco-tool]').forEach(function (page) {
     var id = page.getAttribute('data-gco-tool');
+    if (page.__mounted) return;
     if (registry[id]) return mount(page);
     if (!/^[a-z0-9-]+$/.test(id)) return;
     T.loadScript(BASE + 'assets/tools/' + id + '.js?v=' + VERSION).catch(function (e) {
       var spot = page.querySelector('.gco-tool-mount');
       if (spot) spot.appendChild(h('p', { 'class': 'tstatus is-error', text: e.message }));
     });
-  });
+  }); };
+  T.scan();
 })();

@@ -1,6 +1,7 @@
 # Only the website files are public. Everything else (Blogger theme, posts, scripts) stays on this PC.
 /*
 !/assets/
+!/data/
 !/CNAME
 !/.nojekyll
 !/README.md
