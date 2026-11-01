@@ -229,3 +229,6 @@ html[data-theme='dark'] .notice-bar{background:#2A2210;border-color:#4D3B16}
 @media (max-width:640px){.container{padding:0 16px}.page-wrap{padding:22px 16px 50px}.help-hero{padding:40px 16px 26px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
 @media print{.site-header,.site-footer,.ad-slot,.pick,.toast,.notice-bar{display:none!important}}
+
+/* Infinity's mark is purple (matches the app icon); overrides the colour still inside older uploaded themes */
+.brand-mark [fill='#5FB34C']{fill:#A04CB3}

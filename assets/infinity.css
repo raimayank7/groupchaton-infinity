@@ -459,3 +459,6 @@ h1,h2,h3,h4,h5,h6{letter-spacing:-.03em;font-weight:700}
   .row-go{display:none}
 }
 @media (prefers-reduced-motion:reduce){.is-cards .post-row{transition:none}.is-cards .post-row:hover{transform:none}}
+
+/* Infinity's mark is purple (matches the app icon); overrides the colour still inside older uploaded themes */
+.brand-mark [fill='#5FB34C']{fill:#A04CB3}
