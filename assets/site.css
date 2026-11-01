@@ -527,3 +527,17 @@ button,input,select,textarea,optgroup{font-family:inherit}
 #nav a[aria-current='page']{color:var(--accent)}
 .crumb a+a::before{content:'›';margin:0 6px;color:var(--muted)}
 [data-tool-request]{max-width:560px}
+
+/* ===== help.groupchaton.com ===== */
+.help-search{display:flex;gap:8px;max-width:620px;margin:18px 0 0}
+.help-search input{flex:1;min-width:0;height:48px;padding:0 16px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;font-size:16px}
+.help-search input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+.help-search .btn{height:48px;padding:0 20px}
+.help-topics{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:12px}
+.help-topic{display:flex;flex-direction:column;gap:4px;padding:16px 18px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);text-decoration:none;transition:border-color .15s,transform .15s}
+.help-topic:hover{border-color:var(--accent);transform:translateY(-2px)}
+.help-topic span{font-size:24px;line-height:1}
+.help-topic b{font-family:var(--head);font-size:17px;margin-top:6px}
+.help-topic small{color:var(--muted);font-size:14px;line-height:1.45}
+.help-article ol li,.help-article ul li{margin:6px 0}
+@media (prefers-reduced-motion:reduce){.help-topic{transition:none}.help-topic:hover{transform:none}}

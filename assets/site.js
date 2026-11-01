@@ -1,4 +1,4 @@
-/* GroupChatOn Tools — site script (infinity.groupchaton.com)
+/* GroupChatOn Tools + Help — site script (infinity.groupchaton.com and help.groupchaton.com)
    Designed & Developed by Nivesh Sahayak (https://www.niveshsahayak.in/). All rights reserved: see LICENSE.
    What it does:
    - Pages from GitHub: a Blogger page holds only <div data-gco-page="privacy-policy">short fallback</div>;
@@ -233,9 +233,9 @@
   }
 
   /* ======================================================================
-     "Ask for a tool": sends through Blogger's own contact form (hidden on every page),
-     so requests reach your email. Shown inside the Ask for a Tool page ([data-tool-request]),
-     and as a pop-up from any [data-feedback] link.
+     "Ask for a tool" and "Contact support": send through Blogger's own contact form (hidden on every
+     page), so messages reach your email. Shown inside the page ([data-tool-request] / [data-help-request]),
+     and as a pop-up from any [data-feedback] link (data-feedback="help" for support).
      ====================================================================== */
   var CF = {
     name: $('.contact-form-name'), email: $('.contact-form-email'), msg: $('.contact-form-email-message'),
@@ -246,20 +246,37 @@
   function field(label, input, hint) {
     return el('label', { 'class': 'fb-field' }, [el('span', { text: label }), input, hint ? el('small', { text: hint }) : null]);
   }
-  function requestForm(onSent) {
+  // 'tool': Ask for a tool (infinity) · 'help': Contact support (help.groupchaton.com)
+  var FORMS = {
+    tool: { title: 'Ask for a tool', main: 'Which tool would help you?', mainPh: 'e.g. PDF to Word converter', mainErr: 'Tell us which tool you need.',
+      note: 'Details (optional)', notePh: 'What should it do? Which file types? Any site you use for it now?',
+      privacy: 'We only use your email to tell you when the tool is ready.', send: 'Send my request', subject: '[Tool request] ',
+      ok: 'Thanks! Your request is in. We’ll email you when the tool is ready.' },
+    help: { title: 'Contact support', main: 'What went wrong?', mainPh: 'e.g. The chapter list does not open', mainErr: 'Tell us briefly what went wrong.',
+      topics: ['Reading a novel', 'Comments', 'A free tool', 'Something else'],
+      note: 'Details (optional)', notePh: 'The page link, what you tried, and your phone or computer and browser (e.g. Android, Chrome).',
+      privacy: 'We only use your email to reply to you.', send: 'Send to support', subject: '[Help] ',
+      ok: 'Thanks! We got your message and will reply by email.' }
+  };
+  function requestForm(onSent, mode) {
+    var M = FORMS[mode] || FORMS.tool;
     var me = store.get('gct-contact', {});
     var form = el('form', { 'class': 'fb-form', novalidate: 'novalidate' }), f = {};
-    f.tool = el('input', { type: 'text', maxlength: '200', required: 'required', placeholder: 'e.g. PDF to Word converter' });
-    form.appendChild(field('Which tool would help you?', f.tool));
-    f.note = el('textarea', { rows: '4', maxlength: '1200', placeholder: 'What should it do? Which file types? Any site you use for it now?' });
-    form.appendChild(field('Details (optional)', f.note));
+    if (M.topics) {
+      f.topic = el('select', {}, M.topics.map(function (t) { return el('option', { text: t }); }));
+      form.appendChild(field('It is about', f.topic));
+    }
+    f.tool = el('input', { type: 'text', maxlength: '200', required: 'required', placeholder: M.mainPh });
+    form.appendChild(field(M.main, f.tool));
+    f.note = el('textarea', { rows: '4', maxlength: '1200', placeholder: M.notePh });
+    form.appendChild(field(M.note, f.note));
     f.name = el('input', { type: 'text', maxlength: '80', autocomplete: 'name' });
     f.name.value = me.name || '';
     f.email = el('input', { type: 'email', maxlength: '120', autocomplete: 'email', required: 'required' });
     f.email.value = me.email || '';
     form.appendChild(el('div', { 'class': 'fb-row' }, [field('Your name (optional)', f.name), field('Your email', f.email)]));
-    form.appendChild(el('p', { 'class': 'fb-note', text: 'We only use your email to tell you when the tool is ready.' }));
-    var btn = el('button', { type: 'submit', 'class': 'btn btn-primary fb-send', text: 'Send my request' });
+    form.appendChild(el('p', { 'class': 'fb-note', text: M.privacy }));
+    var btn = el('button', { type: 'submit', 'class': 'btn btn-primary fb-send', text: M.send });
     var status = el('p', { 'class': 'fb-status', role: 'status', 'aria-live': 'polite' });
     form.appendChild(btn);
     form.appendChild(status);
@@ -267,7 +284,7 @@
       e.preventDefault();
       if (fbBusy) return;
       function fail(msg, input) { status.className = 'fb-status is-error'; status.textContent = msg; if (input) input.focus(); }
-      if (!f.tool.value.trim()) return fail('Tell us which tool you need.', f.tool);
+      if (!f.tool.value.trim()) return fail(M.mainErr, f.tool);
       var email = f.email.value.trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('Add a valid email so we can reply.', f.email);
       if (!hasCF) return fail('The form could not load. Please try again in a moment.');
@@ -278,7 +295,7 @@
       status.textContent = 'Sending…';
       if (CF.name) CF.name.value = f.name.value.trim();
       CF.email.value = email;
-      CF.msg.value = ['[Tool request] ' + f.tool.value.trim(), 'From: ' + location.href, '', 'Details: ' + (f.note.value.trim() || '-')].join('\n');
+      CF.msg.value = [M.subject + (f.topic ? f.topic.value + ': ' : '') + f.tool.value.trim(), 'From: ' + location.href, '', 'Details: ' + (f.note.value.trim() || '-')].join('\n');
       CF.ok.textContent = '';
       CF.err.textContent = '';
       var started = Date.now();
@@ -287,7 +304,7 @@
         if (ok) {
           done();
           status.className = 'fb-status is-ok';
-          status.textContent = 'Thanks! Your request is in. We’ll email you when the tool is ready.';
+          status.textContent = M.ok;
           f.tool.value = '';
           f.note.value = '';
           if (onSent) onSent();
@@ -299,16 +316,20 @@
     });
     return { form: form, first: f.tool };
   }
-  // the Ask for a Tool page: the form sits in the page
-  $$('[data-tool-request]').forEach(function (box) { box.innerHTML = ''; box.appendChild(requestForm().form); });
+  // the Ask for a Tool / Contact support pages: the form sits in the page
+  $$('[data-tool-request]').forEach(function (box) { box.innerHTML = ''; box.appendChild(requestForm(null, 'tool').form); });
+  $$('[data-help-request]').forEach(function (box) { box.innerHTML = ''; box.appendChild(requestForm(null, 'help').form); });
   // anywhere else: a pop-up
   doc.addEventListener('click', function (e) {
     var t = e.target.closest && e.target.closest('[data-feedback]');
     if (!t || !hasCF) return;
     e.preventDefault();
     if (nav) nav.classList.remove('is-open');
-    if (!fbSheet) fbSheet = makeSheet('ask-tool', 'Ask for a tool');
-    var b = $('.sheet-body', fbSheet), r = requestForm(function () { setTimeout(closeSheets, 2200); });
+    var mode = t.getAttribute('data-feedback') === 'help' ? 'help' : 'tool';
+    if (!fbSheet) fbSheet = makeSheet('ask-form', '');
+    $('.sheet-head h2', fbSheet).textContent = FORMS[mode].title;
+    fbSheet.setAttribute('aria-label', FORMS[mode].title);
+    var b = $('.sheet-body', fbSheet), r = requestForm(function () { setTimeout(closeSheets, 2200); }, mode);
     b.innerHTML = '';
     b.appendChild(r.form);
     openSheet(fbSheet);
@@ -326,7 +347,7 @@
   // breadcrumbs for search engines: Home › Category › Tool
   if (article) {
     var title = ($('.post-title', article) || {}).textContent || doc.title;
-    var cat = $('.post-labels a', article), items = [['Tools', '/']];
+    var cat = $('.post-labels a', article), items = [[C.homeName || 'Tools', '/']];
     if (cat) items.push([cat.textContent.trim(), cat.getAttribute('href').replace(ORIGIN, '')]);
     items.push([title.trim(), PATH]);
     addJsonLd([{ '@type': 'BreadcrumbList', itemListElement: items.map(function (it, i) {
@@ -339,7 +360,8 @@
   var listTitle = $('.list-title');
   if (listTitle && body.classList.contains('is-list')) {
     var labelM = PATH.match(/^\/search\/label\/(.+)$/), q = new URLSearchParams(location.search).get('q');
-    listTitle.textContent = labelM ? decodeURIComponent(labelM[1]).replace(/\+/g, ' ') + ' tools' : q ? 'Results for “' + q + '”' : 'All tools';
+    var noun = C.listNoun || 'tools';   // 'articles' on help.groupchaton.com
+    listTitle.textContent = labelM ? decodeURIComponent(labelM[1]).replace(/\+/g, ' ') + ' ' + noun : q ? 'Results for “' + q + '”' : 'All ' + noun;
     listTitle.hidden = false;
   }
   var homeAd = $('#home-ad');
@@ -359,8 +381,8 @@
       if (Date.now() < store.get('gct-adnote', 0)) return;
       var bar = el('div', { 'class': 'notice-bar notice-ads', role: 'note' }, [el('div', { 'class': 'container notice-inner' }, [
         el('span', { 'class': 'notice-ic', 'aria-hidden': 'true', text: '💚' }),
-        el('div', { 'class': 'notice-text' }, [el('b', { text: 'Ads keep these tools free' }),
-          el('span', { text: 'We keep ads light and every tool runs on your own device. Please allow ads on this site.' })]),
+        el('div', { 'class': 'notice-text' }, [el('b', { text: C.adNoteTitle || 'Ads keep these tools free' }),
+          el('span', { text: C.adNoteText || 'We keep ads light and every tool runs on your own device. Please allow ads on this site.' })]),
         el('button', { type: 'button', 'class': 'icon-btn', 'aria-label': 'Close', html: icon(ICON_X), onclick: function () {
           store.set('gct-adnote', Date.now() + 7 * 864e5); bar.remove(); } })])]);
       if (header && header.parentNode) header.parentNode.insertBefore(bar, header.nextSibling);
