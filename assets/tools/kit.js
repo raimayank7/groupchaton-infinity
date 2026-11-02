@@ -9,7 +9,7 @@
   var C = window.GCO || {};
   var BASE = C.base || '';
   // EDIT: bump this after changing any file in assets/tools/, so browsers fetch the new version straight away
-  var VERSION = '2026-11-02.11';
+  var VERSION = '2026-11-02.12';
   var doc = document;
   var T = window.GCOTools = window.GCOTools || {};
 
@@ -80,8 +80,8 @@
       '#gco-go-bar.on{width:88%}' +
       'a.gco-opening{position:relative;pointer-events:none;transform:scale(.98);transition:transform .15s}' +
       'a.gco-opening::after{content:"";position:absolute;inset:0;border-radius:inherit;background:rgba(127,127,127,.12);animation:gco-fade .2s both}' +
-      'a.gco-opening::before{content:"";position:absolute;z-index:2;top:50%;left:50%;width:22px;height:22px;margin:-11px 0 0 -11px;' +
-      'border:3px solid rgba(160,76,179,.25);border-top-color:#A04CB3;border-radius:50%;animation:gco-spin .7s linear infinite}' +
+      'a.gco-opening::before{content:"";position:absolute;z-index:2;top:50%;left:50%;right:auto;bottom:auto;width:22px;height:22px;margin:-11px 0 0 -11px;background:none;opacity:1;' +
+      'box-sizing:border-box;border:3px solid rgba(160,76,179,.25);border-top-color:var(--cc,#A04CB3);border-radius:50%;animation:gco-spin .7s linear infinite}' +
       '#gco-go-veil{position:fixed;inset:0;z-index:2147483645;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;' +
       'background:rgba(255,255,255,.86);color:#3b2342;font:600 16px/1.4 system-ui,sans-serif;text-align:center;padding:16px;animation:gco-fade .2s both}' +
       '#gco-go-veil i{width:34px;height:34px;border:4px solid rgba(160,76,179,.25);border-top-color:#A04CB3;border-radius:50%;animation:gco-spin .7s linear infinite}' +
