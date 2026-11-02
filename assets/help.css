@@ -73,6 +73,8 @@ html[data-theme='dark'] .brand-mark{color:#fff}
 .icon-btn{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;text-decoration:none}
 .icon-btn:hover{background:var(--surface-2)}
 .menu-toggle{display:none}
+/* the two smaller topics are only in the ☰ menu (on wide screens the home page's topic cards show them) */
+@media (min-width:1341px){.nav a.nav-more{display:none}}
 @media (max-width:1340px){
   .menu-toggle{display:inline-grid}
   .nav{position:fixed;top:var(--header-h);left:0;right:0;flex-direction:column;align-items:stretch;padding:10px 16px 16px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow);transform:translateY(-8px);opacity:0;pointer-events:none;transition:.2s ease}
