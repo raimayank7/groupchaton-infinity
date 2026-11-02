@@ -38,6 +38,7 @@
 
   T.engines.calc = function (spot, T, def, id) {
     var saved = T.store.get('calc-' + id, {});
+    if (def.currency) T.curDefault = def.currency;
     var els = {}, wraps = {}, hasMoney = def.inputs.some(function (i) { return i.money; });
     var fields = [];
     def.inputs.forEach(function (i) {

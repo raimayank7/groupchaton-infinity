@@ -237,6 +237,15 @@ html[data-theme='dark'] .notice-bar{background:#2A2210;border-color:#4D3B16}
 .brand-logo{display:block;height:38px;width:auto;max-width:none}
 html[data-theme='light'] .brand-logo.is-dark,html:not([data-theme='light']) .brand-logo.is-light{display:none}
 @media (max-width:520px){.brand-logo{height:30px}}
+/* very small phones (320 px): logo, gaps and buttons shrink so the header never scrolls sideways */
+.brand{min-width:0;flex:0 1 auto}
+@media (max-width:380px){
+  .site-header .container{padding:0 12px}
+  .nav-wrap{gap:8px}
+  .brand-logo{height:24px}
+  .nav-actions{gap:4px}
+  .nav-actions .icon-btn{width:38px;height:38px}
+}
 /* the status line only takes space once it has a message */
 .fb-status:empty{display:none}
 

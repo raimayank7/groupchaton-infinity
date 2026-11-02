@@ -1,5 +1,6 @@
 /* Infinity by GroupChatOn — po-td. Designed & Developed by Nivesh Sahayak. See LICENSE. */
 GCOTools.engine('calc', 'po-td', {
+  currency: 'INR',   // India-only: rupees unless the visitor picked another currency
   inputs: [{ k: 'p', label: 'Amount', money: true, value: 100000 }, { k: 't', label: 'Period', options: [['1', '1 year (6.9%)'], ['2', '2 years (7.0%)'], ['3', '3 years (7.1%)'], ['5', '5 years (7.5%)']], value: '5' }],
   calc: function (v) {
     var r = { 1: 6.9, 2: 7.0, 3: 7.1, 5: 7.5 }[v.t], yr = v.p * (Math.pow(1 + r / 400, 4) - 1), n = +v.t;

@@ -1,5 +1,6 @@
 /* Infinity by GroupChatOn — lic. Designed & Developed by Nivesh Sahayak. See LICENSE. */
 GCOTools.engine('calc', 'lic', {
+  currency: 'INR',   // India-only: rupees unless the visitor picked another currency
   inputs: [{ k: 'sa', label: 'Sum assured', money: true, value: 1000000 }, { k: 't', label: 'Policy term', suffix: 'years', value: 21 },
     { k: 'b', label: 'Bonus per ₹1,000 sum assured, per year', value: 45, hint: 'Find your plan’s latest simple reversionary bonus on licindia.in (it changes every year).' },
     { k: 'fab', label: 'Final additional bonus per ₹1,000 (if any)', value: 0 }, { k: 'prem', label: 'Yearly premium (to see your real return)', money: true, value: 50000 }, { k: 'pt', label: 'Premium paying term', suffix: 'years', value: 21 }],

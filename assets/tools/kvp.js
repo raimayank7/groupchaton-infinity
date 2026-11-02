@@ -1,5 +1,6 @@
 /* Infinity by GroupChatOn — kvp. Designed & Developed by Nivesh Sahayak. See LICENSE. */
 GCOTools.engine('calc', 'kvp', {
+  currency: 'INR',   // India-only: rupees unless the visitor picked another currency
   inputs: [{ k: 'p', label: 'Amount invested (from ₹1,000)', money: true, value: 100000 }, { k: 'd', label: 'Date of purchase', type: 'date', value: 'today', fresh: true },
     { k: 'r', label: 'Interest rate', suffix: '% a year', value: 7.5, step: 0.05, hint: 'At 7.5% (Oct–Dec 2026) money doubles in 115 months.' }],
   calc: function (v, X) {

@@ -1,5 +1,6 @@
 /* Infinity by GroupChatOn — gratuity. Designed & Developed by Nivesh Sahayak. See LICENSE. */
 GCOTools.engine('calc', 'gratuity', {
+  currency: 'INR',   // India-only: rupees unless the visitor picked another currency
   inputs: [{ k: 's', label: 'Last basic salary + DA a month', money: true, value: 50000 }, { k: 'y', label: 'Years of service', value: 10 }, { k: 'mo', label: 'and extra months', value: 0 },
     { k: 'act', label: 'Employer is covered by the Payment of Gratuity Act', type: 'check', value: true }],
   calc: function (v, X) {

@@ -1,5 +1,6 @@
 /* Infinity by GroupChatOn — income-tax-in. Designed & Developed by Nivesh Sahayak. See LICENSE. */
 GCOTools.engine('calc', 'income-tax-in', {
+  currency: 'INR',   // India-only: rupees unless the visitor picked another currency
   inputs: [{ k: 'inc', label: 'Total yearly income (salary + other)', money: true, value: 1500000 }, { k: 'sal', label: 'I am salaried or a pensioner (standard deduction)', type: 'check', value: true, wide: true },
     { k: 'ded', label: 'Deductions in the old regime (80C, 80D, HRA, home-loan interest…)', money: true, value: 200000 },
     { k: 'age', label: 'Age (old regime)', options: [['n', 'Below 60'], ['s', '60 to 79'], ['ss', '80 or above']], value: 'n' }],

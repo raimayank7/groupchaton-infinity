@@ -1,5 +1,6 @@
 /* Infinity by GroupChatOn — scss. Designed & Developed by Nivesh Sahayak. See LICENSE. */
 GCOTools.engine('calc', 'scss', {
+  currency: 'INR',   // India-only: rupees unless the visitor picked another currency
   inputs: [{ k: 'p', label: 'Amount (₹1,000 to ₹30 lakh)', money: true, value: 1500000 }, { k: 'r', label: 'Interest rate', suffix: '% a year', value: 8.2, step: 0.05, hint: 'Oct–Dec 2026 rate, fixed for 5 years once you invest.' }],
   calc: function (v, X) {
     X.need(v.p >= 1000 && v.p <= 3000000, 'SCSS accepts ₹1,000 to ₹30 lakh per person.');

@@ -1,5 +1,6 @@
 /* Infinity by GroupChatOn — po-rd. Designed & Developed by Nivesh Sahayak. See LICENSE. */
 GCOTools.engine('calc', 'po-rd', {
+  currency: 'INR',   // India-only: rupees unless the visitor picked another currency
   inputs: [{ k: 'm', label: 'Monthly deposit (from ₹100)', money: true, value: 1000 }, { k: 'r', label: 'Interest rate', suffix: '% a year', value: 6.7, step: 0.05, hint: 'Oct–Dec 2026 rate.' }],
   calc: function (v) {
     var mat = 0; for (var i = 1; i <= 60; i++) mat += v.m * Math.pow(1 + v.r / 400, (60 - i + 1) / 3);

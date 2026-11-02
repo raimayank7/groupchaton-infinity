@@ -134,7 +134,7 @@ GCOTools.register('typing-falling', function (spot, T) {
     function legend() {
       return h('div', { 'class': 'ty-legend', 'aria-hidden': 'true' }, Object.keys(FINGERS).map(function (f) { return h('span', {}, [h('i', { style: 'background:' + FINGERS[f][1] }), FINGERS[f][0].replace(' finger', '')]); }));
     }
-    function wpm(chars, ms) { return ms > 0 ? chars / 5 / (ms / 60000) : 0; }
+    function wpm(chars, ms) { return ms >= 2000 ? chars / 5 / (ms / 60000) : 0; }   // under 2 s a speed means nothing (2 keys would read 46 WPM)
     function fmtTime(ms) { var s = Math.max(0, Math.round(ms / 1000)); return Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }
     function nfc(s) { return String(s || '').normalize('NFC'); }
     /* the typing drill: a passage to copy and a box to type in.

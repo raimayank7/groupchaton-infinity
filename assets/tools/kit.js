@@ -9,7 +9,7 @@
   var C = window.GCO || {};
   var BASE = C.base || '';
   // EDIT: bump this after changing any file in assets/tools/, so browsers fetch the new version straight away
-  var VERSION = '2026-11-02.14';
+  var VERSION = '2026-11-02.15';
   var doc = document;
   var T = window.GCOTools = window.GCOTools || {};
 
@@ -449,19 +449,26 @@
     'ZAR', 'NGN', 'KES', 'EGP', 'GHS', 'TRY', 'RUB', 'UAH', 'PLN', 'SEK', 'NOK', 'DKK', 'CHF', 'CZK', 'ILS', 'QAR', 'KWD', 'OMR', 'BHD', 'MXN', 'BRL', 'ARS', 'CLP', 'COP', 'PEN'];
   T.currency = function (set) {
     if (set) { T.store.set('currency', set); return set; }
-    return T.store.get('currency', null) || REGION_CUR[(LANG.split('-')[1] || '').toUpperCase()] || 'USD';
+    var tz = ''; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+    // the visitor's own choice, else the tool's (India-only tools: INR), else India's time zone, else the browser region
+    return T.store.get('currency', null) || T.curDefault || (/^Asia\/(Kolkata|Calcutta)$/.test(tz) ? 'INR' : '') || REGION_CUR[(LANG.split('-')[1] || '').toUpperCase()] || 'USD';
   };
   function locFor(cur) { return cur === 'INR' ? 'en-IN' : LANG; }   // lakh / crore grouping for rupees
   T.money = function (n, cur) {
     cur = cur || T.currency();
     if (!isFinite(n)) return '—';
-    try { return new Intl.NumberFormat(locFor(cur), { style: 'currency', currency: cur, maximumFractionDigits: Math.abs(n) >= 1000 ? 0 : 2 }).format(n); }
+    try { return new Intl.NumberFormat(locFor(cur), { style: 'currency', currency: cur, maximumFractionDigits: Math.abs(n) >= 1000 || n % 1 === 0 ? 0 : 2 }).format(n); }   // whole amounts never get .00, so ₹1,600 and ₹400 match
     catch (e) { return cur + ' ' + T.num(n, 2); }
+  };
+  /* 6.68e-9 → "6.68 × 10⁻⁹" (superscript power, readable in plain text) */
+  T.sci = function (e) {
+    var m = String(e).match(/^(-?[\d.]+)e([+-])(\d+)$/); if (!m) return String(e);
+    return m[1].replace(/\.?0+$/, function (z) { return m[1].indexOf('.') >= 0 ? '' : z; }) + ' × 10' + (m[2] === '-' ? '⁻' : '') + m[3].replace(/\d/g, function (d) { return '⁰¹²³⁴⁵⁶⁷⁸⁹'[d]; });
   };
   T.num = function (n, dp) {
     if (typeof n !== 'number' || !isFinite(n)) return n === Infinity ? '∞' : '—';
     var a = Math.abs(n);
-    if (a !== 0 && (a >= 1e15 || a < 1e-6)) return n.toExponential(Math.min(dp == null ? 6 : dp, 10)).replace('e+', ' × 10^').replace('e-', ' × 10^-');
+    if (a !== 0 && (a >= 1e15 || a < 1e-6)) return T.sci(n.toExponential(Math.min(dp == null ? 6 : dp, 10)));
     return n.toLocaleString(locFor(T.currency()), { maximumFractionDigits: dp == null ? (a >= 1000 ? 2 : a >= 1 ? 4 : 8) : dp });
   };
 
@@ -636,6 +643,8 @@
   function $all(sel) { return Array.prototype.slice.call(doc.querySelectorAll(sel)); }
   function mount(page) {
     if (page.__mounted) return;
+    // a tool drawn before tools.css arrives looks washed out for a moment: wait for the stylesheet (at most 4 s)
+    if (!cssDone && cssReady) { if (!page.__waitCss) { page.__waitCss = true; cssReady.then(function () { mount(page); }); } return; }
     page.__mounted = true;
     var id = page.getAttribute('data-gco-tool');
     var spot = page.querySelector('.gco-tool-mount') || page.insertBefore(h('div', { 'class': 'gco-tool-mount' }), page.firstChild);
@@ -818,7 +827,12 @@
   });
 
   // load the stylesheet, then each tool's script
-  if (!doc.getElementById('gco-tools-css')) doc.head.appendChild(h('link', { id: 'gco-tools-css', rel: 'stylesheet', href: BASE + 'assets/tools/tools.css?v=' + VERSION }));
+  var cssDone = false, cssReady = new Promise(function (ok) {
+    var l = doc.getElementById('gco-tools-css');
+    function done() { cssDone = true; ok(); }
+    if (l) { if (l.sheet) return done(); } else l = doc.head.appendChild(h('link', { id: 'gco-tools-css', rel: 'stylesheet', href: BASE + 'assets/tools/tools.css?v=' + VERSION }));
+    l.addEventListener('load', done); l.addEventListener('error', done); setTimeout(done, 4000);
+  });
   function inline(page, id) {
     if (registry[id]) return mount(page);
     if (!/^[a-z0-9-]+$/.test(id)) return;

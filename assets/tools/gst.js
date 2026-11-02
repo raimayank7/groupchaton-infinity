@@ -1,5 +1,6 @@
 /* Infinity by GroupChatOn — gst. Designed & Developed by Nivesh Sahayak. See LICENSE. */
 GCOTools.engine('calc', 'gst', {
+  currency: 'INR',   // India-only: rupees unless the visitor picked another currency
   inputs: [{ k: 'a', label: 'Amount', money: true, value: 1000 },
     { k: 'r', label: 'GST rate', options: [['0.25', '0.25%'], ['3', '3% (gold, silver)'], ['5', '5%'], ['12', '12%'], ['18', '18%'], ['28', '28%'], ['40', '40%']], value: '18' },
     { k: 'm', label: 'The amount is', options: [['ex', 'Before GST (add GST)'], ['in', 'Including GST (take GST out)']], value: 'ex' },

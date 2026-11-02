@@ -1,5 +1,6 @@
 /* Infinity by GroupChatOn — epf. Designed & Developed by Nivesh Sahayak. See LICENSE. */
 GCOTools.engine('calc', 'epf', {
+  currency: 'INR',   // India-only: rupees unless the visitor picked another currency
   inputs: [{ k: 'b', label: 'Basic + DA a month', money: true, value: 30000 }, { k: 'age', label: 'Your age', value: 30 }, { k: 'ret', label: 'Retire at', value: 58 },
     { k: 'bal', label: 'EPF balance now', money: true, value: 0 }, { k: 'g', label: 'Salary increase a year', suffix: '%', value: 5 }, { k: 'r', label: 'EPF interest rate', suffix: '%', value: 8.25, step: 0.05 }],
   calc: function (v, X) {

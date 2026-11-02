@@ -36,7 +36,7 @@ GCOTools.register('sliding-puzzle', function (spot, T) {
   function start() {
     tiles = shuffled(N); moves = 0; t0 = 0; playing = true; out.textContent = ''; status.clear();
     board.innerHTML = '';
-    for (var v = 1; v < N * N; v++) board.appendChild(h('div', { 'data-v': String(v), style: 'position:absolute;box-sizing:border-box;padding:3px;transition:transform .12s ease;cursor:pointer' }, [h('div', { style: 'width:100%;height:100%;border-radius:10px;display:grid;place-items:center;font:800 ' + Math.round(110 / N) + 'px/1 var(--ui);background:var(--accent);color:var(--accent-ink);box-shadow:inset 0 -3px 0 rgba(0,0,0,.18);background-repeat:no-repeat' })]));
+    for (var v = 1; v < N * N; v++) board.appendChild(h('div', { 'data-v': String(v), style: 'position:absolute;box-sizing:border-box;padding:3px;transition:transform .12s ease;cursor:pointer' }, [h('div', { style: 'width:100%;height:100%;border-radius:10px;display:grid;place-items:center;font:800 ' + Math.round(110 / N) + 'px/1 var(--ui);background:color-mix(in srgb,var(--accent) 58%,#000);color:#fff;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18);background-repeat:no-repeat' })]));
     clearInterval(timer); timer = setInterval(function () { if (playing && moves && !document.hidden) { t0++; clock.textContent = fmt(t0); } }, 1000);
     var b = T.store.get('sl-best-' + N + (img ? 'p' : ''), null); best.textContent = b ? b.m + ' moves' : '-';
     draw();

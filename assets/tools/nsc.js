@@ -1,5 +1,6 @@
 /* Infinity by GroupChatOn — nsc. Designed & Developed by Nivesh Sahayak. See LICENSE. */
 GCOTools.engine('calc', 'nsc', {
+  currency: 'INR',   // India-only: rupees unless the visitor picked another currency
   inputs: [{ k: 'p', label: 'Amount invested (from ₹1,000)', money: true, value: 100000 }, { k: 'r', label: 'Interest rate', suffix: '% a year', value: 7.7, step: 0.05, hint: 'Oct–Dec 2026 rate, fixed for the whole 5 years once you buy.' }],
   calc: function (v, X) {
     var bal = v.p, rows = [];

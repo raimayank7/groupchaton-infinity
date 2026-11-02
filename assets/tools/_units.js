@@ -13,7 +13,7 @@
     if (!isFinite(n)) return n > 0 ? '∞' : '−∞';
     if (n === 0) return '0';
     var a = Math.abs(n);
-    if (a >= 1e15 || a < 1e-6) return n.toExponential(6).replace(/\.?0+e/, 'e').replace('e+', ' × 10^').replace('e-', ' × 10^-');
+    if (a >= 1e15 || a < 1e-6) return T.sci(n.toExponential(6));
     return parseFloat(n.toPrecision(10)).toLocaleString('en-US', { maximumFractionDigits: 10 });
   }
   function toBase(u, v) { return typeof u[2] === 'function' ? u[2](v) : v * u[2]; }

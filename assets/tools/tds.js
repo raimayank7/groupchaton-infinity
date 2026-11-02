@@ -1,5 +1,6 @@
 /* Infinity by GroupChatOn — tds. Designed & Developed by Nivesh Sahayak. See LICENSE. */
 GCOTools.engine('calc', 'tds', {
+  currency: 'INR',   // India-only: rupees unless the visitor picked another currency
   inputs: [{ k: 'a', label: 'Payment amount', money: true, value: 100000 },
     { k: 's', label: 'Type of payment (section)', wide: true, options: [['194J-p', '194J: professional fees (10%)'], ['194J-t', '194J: technical services, royalty for films (2%)'], ['194C-i', '194C: contractor, individual / HUF (1%)'], ['194C-o', '194C: contractor, company / firm (2%)'],
       ['194H', '194H: commission or brokerage (2%)'], ['194I-b', '194I: rent of land, building, furniture (10%)'], ['194I-m', '194I: rent of plant and machinery (2%)'], ['194A', '194A: interest other than on securities (10%)'], ['194', '194: dividend (10%)'], ['194Q', '194Q: purchase of goods (0.1%)']], value: '194J-p' },

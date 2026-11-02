@@ -1,5 +1,6 @@
 /* Infinity by GroupChatOn — pomis. Designed & Developed by Nivesh Sahayak. See LICENSE. */
 GCOTools.engine('calc', 'pomis', {
+  currency: 'INR',   // India-only: rupees unless the visitor picked another currency
   inputs: [{ k: 'p', label: 'Amount invested', money: true, value: 900000 }, { k: 'j', label: 'Account type', options: [['s', 'Single (up to ₹9 lakh)'], ['j', 'Joint (up to ₹15 lakh)']], value: 's' },
     { k: 'r', label: 'Interest rate', suffix: '% a year', value: 7.4, step: 0.05, hint: 'Oct–Dec 2026 rate, fixed for 5 years.' }],
   calc: function (v, X) {

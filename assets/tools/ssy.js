@@ -1,6 +1,7 @@
 /* Infinity by GroupChatOn — ssy. Designed & Developed by Nivesh Sahayak. See LICENSE. */
 /* Small savings rates: Oct–Dec 2026 (Ministry of Finance notification, 30 Sep 2026). Update every quarter. */
 GCOTools.engine('calc', 'ssy', {
+  currency: 'INR',   // India-only: rupees unless the visitor picked another currency
   inputs: [{ k: 'd', label: 'Yearly deposit (₹250 to ₹1,50,000)', money: true, value: 150000 }, { k: 'age', label: 'Girl’s age when the account is opened', suffix: 'years (below 10)', value: 3 },
     { k: 'y0', label: 'Year the account is opened', value: new Date().getFullYear() }, { k: 'r', label: 'Interest rate', suffix: '% a year', value: 8.2, step: 0.05, hint: 'Oct–Dec 2026 rate. Revised every quarter.' }],
   calc: function (v, X) {

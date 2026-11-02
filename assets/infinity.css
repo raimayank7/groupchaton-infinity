@@ -292,6 +292,10 @@ article.post{max-width:900px;margin:0 auto}
 .kbar-item[aria-selected='true'] a{background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line-strong)}
 .kbar-empty{padding:26px 16px;text-align:center;color:var(--muted)}
 .kbar-foot{display:flex;gap:16px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
+/* the Esc key is also a close button; touch screens (no keyboard) get ✕ and no keyboard hints */
+.kbar-esc{border:0;background:none;padding:0;cursor:pointer;color:inherit;font:inherit}
+.kbar-esc span{display:none;font-size:18px;line-height:1;padding:4px 6px}
+@media (hover:none) and (pointer:coarse){.kbar-foot,.kbar-esc kbd{display:none}.kbar-esc span{display:inline}}
 
 /* ===================== ads + sponsored cards ===================== */
 .picks-src,.contact-src,.popular-src,.cf-proxy{display:none!important}

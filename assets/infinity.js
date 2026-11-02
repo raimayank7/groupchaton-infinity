@@ -84,7 +84,7 @@
     list = el('ul', { 'class': 'kbar-list', role: 'listbox', 'aria-label': 'Tools' }, [el('li', { 'class': 'kbar-empty', text: 'Loading the tool list…' })]);
     box = el('div', { 'class': 'kbar', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Search tools' }, [
       el('div', { 'class': 'kbar-box' }, [
-        el('div', { 'class': 'kbar-top' }, [svg('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'), input, el('kbd', { text: 'Esc' })]),
+        el('div', { 'class': 'kbar-top' }, [svg('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'), input, el('button', { type: 'button', 'class': 'kbar-esc', 'aria-label': 'Close search', onclick: function () { close(); } }, [el('kbd', { text: 'Esc' }), el('span', { text: '✕' })])]),
         list,
         el('div', { 'class': 'kbar-foot' }, [el('span', { text: '↑ ↓ to move' }), el('span', { text: 'Enter to open' }), el('span', { text: 'Ctrl K anywhere' })])])]);
     box.addEventListener('mousedown', function (e) { if (e.target === box) close(); });
@@ -178,7 +178,7 @@
     var sh = el('div', { id: 'inst-sheet', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'inst-h',
       style: 'position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,6,15,.6)',
       onclick: function (e) { if (e.target === sh) sh.remove(); } }, [
-      el('div', { style: 'max-width:440px;width:100%;box-sizing:border-box;padding:20px;border-radius:18px;background:var(--surface,#11132a);color:var(--text,#E8EAFF);border:1px solid var(--line,rgba(139,124,255,.3));box-shadow:0 20px 60px rgba(0,0,0,.4)' }, [
+      el('div', { style: 'max-width:440px;width:100%;box-sizing:border-box;padding:20px;border-radius:18px;background:var(--surface-solid,#0E131D);color:var(--ink,#E8EAFF);border:1px solid var(--line,rgba(139,124,255,.3));box-shadow:0 20px 60px rgba(0,0,0,.4)' }, [
         el('h2', { id: 'inst-h', style: 'margin:0 0 10px;font-size:1.25rem', text: done || standalone ? 'Installed' : 'Install the Infinity app' }),
         el('ol', { style: 'margin:0 0 16px;padding-left:1.3em;line-height:1.55' }, steps.map(function (t) { return el('li', { text: t }); })),
         close])]);
