@@ -20,7 +20,7 @@
 .tbtn:active{transform:translateY(1px)}
 .tbtn:disabled{opacity:.5;cursor:not-allowed;filter:none}
 .tbtn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.tbtn-sm{min-height:36px;padding:0 14px;font-size:14px}
+.tbtn-sm{min-height:40px;padding:0 14px;font-size:14px}
 .tbtn-wide{width:100%}
 
 /* fields */
@@ -223,7 +223,7 @@ html[data-theme='light'] .tool-app :is(input[type='date'],input[type='month'],in
 .tapp-note{margin:8px 2px 0;font-size:13.5px;color:var(--muted)}.tapp-note a{color:var(--accent);font-weight:600}
 
 /* ---------- loading panel until a tool starts (written into every post; kit.js removes it) ---------- */
-.tload{display:grid;gap:14px;align-content:center;min-height:240px;padding:24px;border-radius:20px;border:1px solid var(--line);background:var(--surface)}
+.tload{display:grid;gap:14px;align-content:center;min-height:min(620px,75vh);padding:24px;border-radius:20px;border:1px solid var(--line);background:var(--surface)}
 .tload code{font:500 14px/1.4 var(--mono);color:var(--muted);background:none;border:0;padding:0}
 .tload code::before{content:'❯ ';color:var(--code,#7EE787)}
 .tload code::after{content:'▍';margin-left:2px;color:var(--accent);animation:tloadBlink 1s steps(1) infinite}
@@ -291,7 +291,7 @@ html[data-theme='light'] .tool-app :is(input[type='date'],input[type='month'],in
 .tu-all th{color:var(--ink-soft)}
 .tu-all td{text-align:right}
 .tu-all tr.is-on th,.tu-all tr.is-on td{background:var(--accent-soft)}
-.tu-copy{border:0;background:none;color:var(--ink);font:500 14.5px var(--mono);cursor:copy;padding:2px 4px;border-radius:6px;overflow-wrap:anywhere}
+.tu-copy{border:0;background:none;color:var(--ink);font:500 14.5px var(--mono);cursor:copy;padding:8px 6px;min-height:40px;border-radius:6px;overflow-wrap:anywhere}
 .tu-copy:hover{background:var(--surface-2)}
 
 /* ---------- time zones, ruler, protractor, places, maps ---------- */
@@ -412,3 +412,9 @@ html[data-theme='light'] .tool-app input[type='file']::file-selector-button{back
 html[data-theme='light'] a.tbtn:not(.tbtn-primary){color:var(--ink)}
 /* Link buttons: the theme's link colours (a, a:hover) are the accent itself, which hid the label on an accent button */
 html a.tbtn-primary,html a.tbtn-primary:hover{color:var(--accent-ink)}
+
+/* round-2 phone test: comfortable tap targets (40 px) */
+.tbtn-ic-only{min-width:40px}
+.tool-app input[type=range]{min-height:32px}
+.tool-app details>summary{padding-top:10px;padding-bottom:10px}
+.tool-app input[type=file]{min-height:44px}

@@ -31,7 +31,7 @@ GCOTools.register('html-table', function (spot, T) {
     L.push('  </tbody>\n</table>' + (o.css ? '\n</div>' : ''));
     return L.join('\n');
   }
-  var preview = h('div', { style: 'overflow:auto;padding:12px;border-radius:14px;background:#fff;color:#111' });
+  var preview = h('div', { 'class': 'tpaper', style: 'overflow:auto;padding:12px;border-radius:14px;background:#fff;color:#111' });
   var tr = T.transformer(spot, { id: 'html-table', inLabel: 'Rows (paste from Excel / Google Sheets, or CSV)', mono: true, rows: 8, outLabel: 'HTML', download: 'table.html', type: 'text/html',
     sample: 'Product\tQty\tPrice\nBasmati rice 5 kg\t2\t₹640\nMustard oil 1 L\t3\t₹185\n"Tea, masala"\t1\t₹120',
     options: [T.opt.check('head', 'First row is the header', true), T.opt.check('css', 'Add simple styling', true), T.opt.check('striped', 'Striped rows', true), T.opt.text('caption', 'Caption (optional)', '', 'e.g. Price list, May 2026')],

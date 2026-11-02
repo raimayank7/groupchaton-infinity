@@ -350,7 +350,7 @@ article.post{max-width:900px;margin:0 auto}
 @media print{.site-header,.site-footer,.ad-slot,.pick,.trelated,.toast,.notice-bar{display:none!important}body::before,body::after{display:none}}
 
 /* ---------- loading panel until a tool starts (written into every post; kit.js removes it) ---------- */
-.tload{display:grid;gap:14px;align-content:center;min-height:240px;padding:24px;border-radius:20px;border:1px solid var(--line);background:var(--surface)}
+.tload{display:grid;gap:14px;align-content:center;min-height:min(620px,75vh);padding:24px;border-radius:20px;border:1px solid var(--line);background:var(--surface)}
 .tload code{font:500 14px/1.4 var(--mono);color:var(--muted);background:none;border:0;padding:0}
 .tload code::before{content:'❯ ';color:var(--code,#7EE787)}
 .tload code::after{content:'▍';margin-left:2px;color:var(--accent);animation:tloadBlink 1s steps(1) infinite}
@@ -375,7 +375,7 @@ article.post{max-width:900px;margin:0 auto}
 .thub-pager{display:flex;justify-content:center;margin:6px 0 0}
 .thub-cell{position:relative;display:flex}
 .thub-cell>.thub-card{flex:1;padding-right:44px}
-.thub-fav{position:absolute;top:10px;right:10px;width:32px;height:32px;display:grid;place-items:center;border-radius:10px;border:0;background:transparent;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;opacity:.55;transition:opacity .15s,color .15s,background-color .15s}
+.thub-fav{position:absolute;top:6px;right:6px;width:40px;height:40px;display:grid;place-items:center;border-radius:10px;border:0;background:transparent;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;opacity:.55;transition:opacity .15s,color .15s,background-color .15s}
 .thub-cell:hover .thub-fav,.thub-fav:focus-visible{opacity:1}
 .thub-fav:hover{background:var(--surface-2);color:var(--ink)}
 .thub-fav[aria-pressed='true']{opacity:1;color:#FBBF24}
