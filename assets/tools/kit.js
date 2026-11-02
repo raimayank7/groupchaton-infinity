@@ -9,7 +9,7 @@
   var C = window.GCO || {};
   var BASE = C.base || '';
   // EDIT: bump this after changing any file in assets/tools/, so browsers fetch the new version straight away
-  var VERSION = '2026-11-02.10';
+  var VERSION = '2026-11-02.11';
   var doc = document;
   var T = window.GCOTools = window.GCOTools || {};
 
@@ -73,10 +73,42 @@
     .then(applyPaths)
     .catch(function (e) { if (window.console) console.warn('Infinity: tool list not loaded', e); });
   if (!C.isApp) {
+    // opening effect: the tapped card dims with a spinner and a thin bar runs along the top until the tool page arrives
+    var fx = doc.createElement('style');
+    fx.textContent = '#gco-go-bar{position:fixed;top:0;left:0;height:3px;width:0;z-index:2147483646;pointer-events:none;' +
+      'background:linear-gradient(90deg,#A04CB3,#d68be6,#A04CB3);box-shadow:0 0 8px #A04CB3;opacity:1;transition:width 8s cubic-bezier(.1,.7,.2,1),opacity .3s}' +
+      '#gco-go-bar.on{width:88%}' +
+      'a.gco-opening{position:relative;pointer-events:none;transform:scale(.98);transition:transform .15s}' +
+      'a.gco-opening::after{content:"";position:absolute;inset:0;border-radius:inherit;background:rgba(127,127,127,.12);animation:gco-fade .2s both}' +
+      'a.gco-opening::before{content:"";position:absolute;z-index:2;top:50%;left:50%;width:22px;height:22px;margin:-11px 0 0 -11px;' +
+      'border:3px solid rgba(160,76,179,.25);border-top-color:#A04CB3;border-radius:50%;animation:gco-spin .7s linear infinite}' +
+      '#gco-go-veil{position:fixed;inset:0;z-index:2147483645;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;' +
+      'background:rgba(255,255,255,.86);color:#3b2342;font:600 16px/1.4 system-ui,sans-serif;text-align:center;padding:16px;animation:gco-fade .2s both}' +
+      '#gco-go-veil i{width:34px;height:34px;border:4px solid rgba(160,76,179,.25);border-top-color:#A04CB3;border-radius:50%;animation:gco-spin .7s linear infinite}' +
+      '@media (prefers-color-scheme:dark){html:not([data-theme=light]) #gco-go-veil{background:rgba(18,12,22,.88);color:#f1e6f4}}' +
+      'html[data-theme=dark] #gco-go-veil,body.dark #gco-go-veil{background:rgba(18,12,22,.88);color:#f1e6f4}' +
+      '@keyframes gco-spin{to{transform:rotate(360deg)}}@keyframes gco-fade{from{opacity:0}}' +
+      '@media (prefers-reduced-motion:reduce){#gco-go-bar{transition:none}a.gco-opening{transform:none}a.gco-opening::before,#gco-go-veil i{animation-duration:2s}}';
+    (doc.head || doc.documentElement).appendChild(fx);
+    var goBar = function () {
+      var b = doc.getElementById('gco-go-bar');
+      if (!b) { b = doc.createElement('div'); b.id = 'gco-go-bar'; doc.body.appendChild(b); }
+      b.offsetWidth; b.className = 'on';   // reflow first, so the bar grows from 0
+    };
+    // coming back with the Back button shows the page from memory: clear the effect
+    window.addEventListener('pageshow', function () {
+      var b = doc.getElementById('gco-go-bar'), v = doc.getElementById('gco-go-veil');
+      if (b) b.remove();
+      if (v) v.remove();
+      Array.prototype.forEach.call(doc.querySelectorAll('.gco-opening'), function (a) { a.classList.remove('gco-opening'); });
+    });
     // a tool link tapped before the post list arrived: wait for it, then open the tool's own page instead of a search
     doc.addEventListener('click', function (e) {
       var a = e.target.closest && e.target.closest('a[data-tool-link]');
-      if (!a || e.ctrlKey || e.metaKey || e.shiftKey || !/^\/search\?q=/.test(a.getAttribute('href') || '')) return;
+      if (!a || e.defaultPrevented || e.button || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || a.target === '_blank') return;
+      a.classList.add('gco-opening');
+      goBar();
+      if (!/^\/search\?q=/.test(a.getAttribute('href') || '')) return;   // a real address: the browser opens it
       e.preventDefault();
       T.ready.then(function () { var t = T.find(a.getAttribute('data-tool-link')); location.href = t ? t.path : a.href; });
     }, true);
@@ -85,7 +117,15 @@
     if (q) T.ready.then(function () {
       var name = decodeURIComponent(q[1].replace(/\+/g, ' ')).trim().toLowerCase();
       var t = T.list.filter(function (x) { return x.name.toLowerCase() === name || x.title.toLowerCase() === name; })[0];
-      if (t && !/^\/search/.test(t.path)) location.replace(t.path);
+      if (!t || /^\/search/.test(t.path)) return;
+      var v = doc.createElement('div');
+      v.id = 'gco-go-veil';
+      v.setAttribute('role', 'status');
+      v.innerHTML = '<i aria-hidden="true"></i>';
+      v.appendChild(doc.createTextNode('Opening ' + t.name + '…'));
+      doc.body.appendChild(v);
+      goBar();
+      location.replace(t.path);
     });
   }
 
