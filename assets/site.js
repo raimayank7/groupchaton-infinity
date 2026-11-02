@@ -512,7 +512,7 @@
   // help.groupchaton.com: each article gets its section's icon (or its tool's icon), the section name and its description
   function helpCards(rows, list, base, t, plain) {
     var v = Math.floor(Date.now() / 6e5), get = function (f) { return fetch(base + 'data/' + f + '?v=' + v, { credentials: 'omit' }).then(function (r) { return r.json(); }); };
-    var SEC = { Tools: ['🛠️', '#0D9488'], Reading: ['📖', '#7C3AED'], Comments: ['💬', '#2563EB'], ShareYourGroup: ['👥', '#16A34A'], Site: ['⚙️', '#D97706'] };
+    var SEC = { Tools: ['🛠️', '#0D9488'], Reading: ['📖', '#7C3AED'], Comments: ['💬', '#2563EB'], Share: ['👥', '#16A34A'], ShareYourGroup: ['👥', '#16A34A'], Site: ['⚙️', '#D97706'] };
     Promise.all([get('help.json'), get('tools.json').catch(function () { return { tools: [] }; })]).then(function (r) {
       clearTimeout(t);
       var byTitle = {}, tools = (r[1].tools || []).slice().sort(function (a, b) { return b.name.length - a.name.length; });
@@ -583,13 +583,24 @@
   li.appendChild(a); d.parentNode.parentNode.insertBefore(li, d.parentNode.nextSibling);
 })();
 
-/* help.groupchaton.com: a short intro on each section page, ShareYourGroup as a sister-site link, and comments from the
+/* help.groupchaton.com: a short intro on each section page, Share (share.groupchaton.com) as a sister-site link, and comments from the
    same Disqus site as groupchaton.com (group4whatsapp), until the uploaded theme carries these */
 ;(function () {
   if (!/^help\./.test(location.hostname)) return;
   // sister site in the menu, like Novels and Free tools
-  var nav = document.getElementById('nav'), sy = nav && nav.querySelector('a[href="/search/label/ShareYourGroup"]');
-  if (sy) { sy.href = 'https://www.shareyourgroup.com/'; sy.textContent = 'ShareYourGroup ↗'; nav.appendChild(sy); }
+  // (owner 2026-11-02: the help topic is now "Share"; pages built or uploaded earlier still name the old directory site, so fix them here)
+  var nav = document.getElementById('nav');
+  [].forEach.call(document.querySelectorAll('a[href*="shareyourgroup.com"]:not([rel~="sponsored"]), a[href*="label/ShareYourGroup"], a[href*="/topics/shareyourgroup"]'), function (a) {
+    if (a.closest('#picks-src, .promo, [data-label]')) return;   // sponsored cards keep their own links
+    if (/shareyourgroup\.com/i.test(a.href)) { a.href = 'https://share.groupchaton.com/'; a.textContent = 'Share ↗'; return; }
+    a.href = '/topics/share/';
+    var b = a.querySelector('b'), sm = a.querySelector('small');
+    if (b) { b.textContent = 'Share'; if (sm) sm.textContent = 'Adding, finding, joining and reporting WhatsApp groups and channels on Share'; }
+    else a.textContent = a.classList.contains('nav-more') ? 'Share help' : 'Share';
+  });
+  if (nav && !nav.querySelector('a[href^="https://share.groupchaton.com"]')) {   // old markup had no sister-site link of its own
+    var sy = document.createElement('a'); sy.href = 'https://share.groupchaton.com/'; sy.textContent = 'Share ↗'; nav.appendChild(sy);
+  }
   // comments
   var box = document.querySelector('.help-comments'), btn = box && box.querySelector('[data-load-comments]');
   if (btn) {
@@ -605,7 +616,7 @@
   // section intro
   var m = location.pathname.match(/^\/search\/label\/([^/?#]+)/), list = document.querySelector('.post-list');
   if (!m || !list) return;
-  var L = decodeURIComponent(m[1]).replace(/\+/g, ' ');
+  var L = decodeURIComponent(m[1]).replace(/\+/g, ' '); if (L === 'ShareYourGroup') L = 'Share';
   var INTRO = {
     Tools: ['🛠️', 'Step-by-step help for every free tool on Infinity: how to use it, what each option means, and how to fix the error messages people meet most often.',
       ['How to use each tool', 'Error messages explained', 'PDF, image and voice tools', 'Calculators and converters', 'Privacy: files stay on your device']],
@@ -613,8 +624,8 @@
       ['Font, size and theme', 'Continue where you left off', 'Find any chapter', 'New chapter alerts', 'Request a novel', 'Report a typo']],
     Comments: ['💬', 'What to do when comments on a chapter or article do not appear, and how to get the comment box working on your phone or computer.',
       ['Comments not showing', 'Fixes for phone and computer']],
-    ShareYourGroup: ['👥', 'Help for ShareYourGroup, our sister site for finding and sharing WhatsApp groups and channels: submitting a group, joining safely and reporting a bad link.',
-      ['Submit your group', 'Find and join groups', 'Bump or remove a listing', 'Report a bad group', 'Stay safe', 'Groups vs channels']],
+    Share: ['👥', 'Help for Share, our WhatsApp group and channel directory: adding your group or channel, finding and joining safely, reporting a bad listing and fixing problems.',
+      ['Add your group or channel', 'Find, save and join', 'Report a listing', 'Describe or categorise a listing', 'Stay safe', 'Groups vs channels']],
     Site: ['⚙️', 'How the GroupChatOn sites work, including why you see ads and how your privacy is protected.',
       ['Why ads appear', 'Privacy and cookies']]
   };
@@ -623,7 +634,7 @@
   box2.innerHTML = '<span class="help-intro-ic" aria-hidden="true">' + it[0] + '</span><p>' + it[1] + '</p><ul>' +
     it[2].map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>' +
     '<p class="help-intro-foot">Can’t find your answer? <a href="/search">Search all articles</a> or <a href="/p/contact-support.html"><b>contact support</b></a>, and we reply by email.' +
-    (L === 'ShareYourGroup' ? ' Visit <a href="https://www.shareyourgroup.com/">shareyourgroup.com</a>.' : '') + '</p>';
+    (L === 'Share' ? ' Visit <a href="https://share.groupchaton.com/">share.groupchaton.com</a>.' : '') + '</p>';
   list.parentNode.insertBefore(box2, list);
 })();
 
