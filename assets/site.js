@@ -126,6 +126,10 @@
   if (menuBtn && nav) menuBtn.addEventListener('click', function () {
     var open = nav.classList.toggle('is-open');
     menuBtn.setAttribute('aria-expanded', String(open));
+    if (open) { var first = nav.querySelector('a'); if (first) setTimeout(function () { first.focus(); }, 30); }   // keyboard users land in the menu
+  });
+  if (menuBtn && nav) doc.addEventListener('keydown', function (e) {   // Esc closes the ☰ menu
+    if (e.key === 'Escape' && nav.classList.contains('is-open')) { nav.classList.remove('is-open'); menuBtn.setAttribute('aria-expanded', 'false'); menuBtn.focus(); }
   });
   var lastY = window.scrollY;
   window.addEventListener('scroll', function () {

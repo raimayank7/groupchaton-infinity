@@ -78,7 +78,8 @@ html[data-theme='dark'] .brand-mark{color:#fff}
 @media (max-width:1340px){
   .menu-toggle{display:inline-grid}
   .nav{position:fixed;top:var(--header-h);left:0;right:0;flex-direction:column;align-items:stretch;padding:10px 16px 16px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow);transform:translateY(-8px);opacity:0;pointer-events:none;transition:.2s ease}
-  .nav.is-open{transform:none;opacity:1;pointer-events:auto}
+  .nav.is-open{transform:none;opacity:1;pointer-events:auto;visibility:visible}
+  .nav:not(.is-open){visibility:hidden}   /* closed menu: links out of the Tab order (round-2 a11y) */
   .nav a{padding:12px 14px;font-size:17px}
 }
 
@@ -311,3 +312,8 @@ html[data-theme='light'] .brand-logo.is-dark,html:not([data-theme='light']) .bra
 .help-langs b{color:var(--ink)}
 .post-body .help-note{margin-top:22px;padding:12px 14px;border-radius:12px;background:var(--surface-2,rgba(13,148,136,.08));font-size:14.5px;color:var(--muted)}
 :lang(hi) .post-body,:lang(bho) .post-body,:lang(pa) .post-body{line-height:1.85}
+
+/* round-2 test fixes */
+.post-body pre{overflow-x:auto;max-width:100%}
+.help-search:focus-within{outline:3px solid var(--accent,#0D9488);outline-offset:2px;border-radius:14px}
+@media (max-width:380px){.site-header .brand-logo{max-width:100%;height:auto;object-fit:contain;object-position:left center}}

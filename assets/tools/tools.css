@@ -28,7 +28,7 @@
 .tfield-label{font:600 13.5px/1.3 var(--ui);color:var(--ink-soft)}
 .tfield small{color:var(--muted);font-size:12.5px}
 .tool-app input[type='text'],.tool-app input[type='url'],.tool-app input[type='date'],.tool-app input[type='month'],.tool-app input[type='time'],.tool-app input[type='email'],.tool-app input[type='password'],.tool-app input[type='number'],.tool-app input[type='search'],.tool-app input[type='tel'],.tool-app select{height:46px}
-.tool-app input[type='text'],.tool-app input[type='url'],.tool-app input[type='number'],.tool-app input[type='search'],.tool-app input[type='tel'],.tool-app select,.tool-app textarea{width:100%;min-height:44px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:15px/1.45 var(--ui);box-sizing:border-box}
+.tool-app input[type='text'],.tool-app input[type='url'],.tool-app input[type='number'],.tool-app input[type='search'],.tool-app input[type='tel'],.tool-app select,.tool-app textarea{width:100%;min-height:44px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:16px/1.45 var(--ui);box-sizing:border-box}
 .tool-app textarea{min-height:160px;resize:vertical}
 .tool-app input:focus,.tool-app select:focus,.tool-app textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .tool-app input[type='range'],.tool-app input[type='checkbox'],.tool-app input[type='radio']{accent-color:var(--accent)}
@@ -418,3 +418,5 @@ html a.tbtn-primary,html a.tbtn-primary:hover{color:var(--accent-ink)}
 .tool-app input[type=range]{min-height:32px}
 .tool-app details>summary{padding-top:10px;padding-bottom:10px}
 .tool-app input[type=file]{min-height:44px}
+
+.tdrop:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-color:var(--accent)}
