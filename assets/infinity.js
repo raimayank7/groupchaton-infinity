@@ -133,7 +133,7 @@
   /* ---------- category and search pages: the tool grid from the database, opened on that category / search ---------- */
   if (/^\/search(\/label\/|$)/.test(location.pathname)) {
     var reading = doc.querySelector('.reading');
-    if (reading) {
+    if (reading && !doc.querySelector('[data-gco-tool="hub"]')) {   // the static site already has the catalogue in the page
       var hub = el('div', { 'class': 'gco-page', 'data-gco-tool': 'hub' }, [el('div', { 'class': 'gco-tool-mount' })]);
       var plist = reading.querySelector('.post-list'), pager = reading.querySelector('.blog-pager');
       reading.insertBefore(hub, plist || null);
@@ -155,8 +155,64 @@
       if (sp) sp.parentNode.insertBefore(sh, sp.nextSibling);
     }
     var st = hero.querySelector('.inf-stats');
-    if (st) { var ul = doc.createElement('ul'); ul.className = 'inf-feats'; ul.innerHTML = '<li><svg aria-hidden="true" class="i" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><b>Private</b><span>Files are processed in your browser and never uploaded.</span></li><li><svg aria-hidden="true" class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/><path d="M3 3l18 18"/></svg><b>No sign-up</b><span>No account, no watermark, no daily limits.</span></li><li><a href="https://app.groupchaton.com/"><svg aria-hidden="true" class="i" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M12 7v7M9 11l3 3 3-3M10 18h4"/></svg><b>Install as an app</b><span>On your phone or PC. Works offline too.</span></a></li><li><a href="/p/ask-for-a-tool.html"><svg aria-hidden="true" class="i" viewBox="0 0 24 24"><path d="M21 12a8.5 8.5 0 0 1-12.4 7.6L3 21l1.4-5.6A8.5 8.5 0 1 1 21 12z"/><path d="M12 8v6M9 11h6"/></svg><b>Ask for a tool</b><span>Missing something? Tell us and we will build it.</span></a></li>'; st.parentNode.replaceChild(ul, st); }
+    if (st) { var ul = doc.createElement('ul'); ul.className = 'inf-feats'; ul.innerHTML = '<li><svg aria-hidden="true" class="i" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><b>Private</b><span>Files are processed in your browser and never uploaded.</span></li><li><svg aria-hidden="true" class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/><path d="M3 3l18 18"/></svg><b>No sign-up</b><span>No account, no watermark, no daily limits.</span></li><li><a data-install="1" href="/#install"><svg aria-hidden="true" class="i" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M12 7v7M9 11l3 3 3-3M10 18h4"/></svg><b>Install as an app</b><span>On your phone or PC. Works offline too.</span></a></li><li><a href="/p/ask-for-a-tool.html"><svg aria-hidden="true" class="i" viewBox="0 0 24 24"><path d="M21 12a8.5 8.5 0 0 1-12.4 7.6L3 21l1.4-5.6A8.5 8.5 0 1 1 21 12z"/><path d="M12 8v6M9 11h6"/></svg><b>Ask for a tool</b><span>Missing something? Tell us and we will build it.</span></a></li>'; st.parentNode.replaceChild(ul, st); }
   })();
+
+  /* ---------- Infinity installs as an app (manifest.webmanifest + sw.js on the static site) ----------
+     Any [data-install] link or button: the browser's own install dialog when it offers one, otherwise short steps for this device. */
+  var installEvt = null, standalone = window.matchMedia && matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  function showInstallBtns() {
+    Array.prototype.forEach.call(doc.querySelectorAll('button[data-install]'), function (b) { b.hidden = standalone; });
+  }
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installEvt = e; showInstallBtns(); });
+  window.addEventListener('appinstalled', function () { installEvt = null; standalone = true; showInstallBtns(); installSheet(true); });
+  if (C.static && !standalone && doc.querySelector('link[rel="manifest"]')) showInstallBtns();
+  function installSheet(done) {
+    var old = doc.getElementById('inst-sheet'); if (old) old.remove();
+    var ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && 'ontouchend' in doc);
+    var steps = done || standalone ? ['Infinity is installed. Open it from your home screen or app list: every tool, and it works offline.']
+      : ios ? ['Tap the Share button (the square with an arrow) in Safari.', 'Scroll down and tap “Add to Home Screen”.', 'Tap “Add”. Infinity now opens from your home screen like an app.']
+      : /Android/.test(ua) ? ['Tap the browser menu (⋮) at the top right.', 'Tap “Install app” or “Add to Home screen”.', 'Tap “Install”. Infinity now opens from your app drawer.']
+      : ['Click the install icon at the right end of the address bar (a screen with a down arrow), or open the browser menu (⋮) › “Cast, save and share” › “Install page as app”.', 'Click “Install”. Infinity opens in its own window and from your Start menu.'];
+    var close = el('button', { type: 'button', 'class': 'btn btn-sm', text: 'Close', onclick: function () { sh.remove(); } });
+    var sh = el('div', { id: 'inst-sheet', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'inst-h',
+      style: 'position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,6,15,.6)',
+      onclick: function (e) { if (e.target === sh) sh.remove(); } }, [
+      el('div', { style: 'max-width:440px;width:100%;box-sizing:border-box;padding:20px;border-radius:18px;background:var(--surface,#11132a);color:var(--text,#E8EAFF);border:1px solid var(--line,rgba(139,124,255,.3));box-shadow:0 20px 60px rgba(0,0,0,.4)' }, [
+        el('h2', { id: 'inst-h', style: 'margin:0 0 10px;font-size:1.25rem', text: done || standalone ? 'Installed' : 'Install the Infinity app' }),
+        el('ol', { style: 'margin:0 0 16px;padding-left:1.3em;line-height:1.55' }, steps.map(function (t) { return el('li', { text: t }); })),
+        close])]);
+    doc.body.appendChild(sh);
+    close.focus();
+    doc.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { sh.remove(); doc.removeEventListener('keydown', esc); } });
+  }
+  function install() {
+    if (installEvt) {
+      var ev = installEvt; installEvt = null;
+      ev.prompt();
+      (ev.userChoice || Promise.resolve()).then(function () { showInstallBtns(); });
+    } else installSheet();
+  }
+  window.GCOInstall = install;
+  doc.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('[data-install]');
+    if (!a || !C.static) return;
+    e.preventDefault();
+    install();
+  });
+  if (C.static && location.hash === '#install') setTimeout(installSheet, 600);
+
+  /* ---------- Ask for a tool (static site): Blogger's contact form is gone, so copy the request and open the main site's contact form ---------- */
+  Array.prototype.forEach.call(doc.querySelectorAll('[data-ask-send]'), function (a) {
+    a.addEventListener('click', function (e) {
+      var tool = doc.getElementById('ask-tool'), note = doc.getElementById('ask-note'), st = a.parentNode.querySelector('.fb-status');
+      if (!tool.value.trim()) { e.preventDefault(); st.className = 'fb-status is-error'; st.textContent = 'Tell us which tool you need.'; tool.focus(); return; }
+      var text = '[Tool request] ' + tool.value.trim() + '\nDetails: ' + (note.value.trim() || '-');
+      try { navigator.clipboard.writeText(text); } catch (x) {}
+      st.className = 'fb-status is-ok';
+      st.textContent = 'Copied. In the new tab, paste it into the message box, add your email and press Send.';
+    });
+  });
 
   /* ---------- live numbers on the home page ---------- */
   var stats = doc.querySelectorAll('[data-stat]');
