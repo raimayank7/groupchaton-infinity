@@ -275,3 +275,12 @@ html[data-theme='light'] .brand-logo.is-dark,html:not([data-theme='light']) .bra
   background:linear-gradient(90deg,color-mix(in srgb,var(--ink) 7%,transparent),color-mix(in srgb,var(--ink) 15%,transparent),color-mix(in srgb,var(--ink) 7%,transparent));background-size:200% 100%;animation:rowShim 1.2s linear infinite}
 @keyframes rowShim{to{background-position:-200% 0}}
 @media (prefers-reduced-motion:reduce){.is-cards .post-row{transition:none}.is-cards .post-row:hover{transform:none}}
+
+/* ---------- static site (GitHub Pages, 2026-11-02): related articles, search page, contact note ---------- */
+#gco-boot{display:none}
+.help-related{margin:34px 0 8px}
+.help-related .section-head h2{font-size:1.15rem}
+.search-count{color:var(--muted);margin:14px 0 6px;font-size:.95rem}
+.help-contact-box,.fb-fallback{background:var(--accent-soft);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:14px 0}
+.help-contact-box p{margin:0 0 8px}.help-contact-box p:last-child{margin:0}
+.post-row h3 a,.post-body,.row-desc{overflow-wrap:anywhere}

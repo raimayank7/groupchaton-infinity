@@ -133,7 +133,10 @@
     lastY = y;
   }, { passive: true });
   // the menu link for this page's category stays highlighted
-  $$('#nav a').forEach(function (a) { if (a.getAttribute('href') === PATH || (PATH !== '/' && decodeURIComponent(PATH) === decodeURIComponent(a.getAttribute('href')))) a.setAttribute('aria-current', 'page'); });
+  $$('#nav a').forEach(function (a) {
+    var h = (a.getAttribute('href') || '').replace(/\/+$/, '') || '/';
+    if (h === PATH || (PATH !== '/' && decodeURIComponent(PATH) === decodeURIComponent(h))) a.setAttribute('aria-current', 'page');
+  });
   $$('[data-year]').forEach(function (n) { n.textContent = new Date().getFullYear(); });
 
   /* ======================================================================
@@ -317,8 +320,16 @@
     return { form: form, first: f.tool };
   }
   // the Ask for a Tool / Contact support pages: the form sits in the page
-  $$('[data-tool-request]').forEach(function (box) { box.innerHTML = ''; box.appendChild(requestForm(null, 'tool').form); });
-  $$('[data-help-request]').forEach(function (box) { box.innerHTML = ''; box.appendChild(requestForm(null, 'help').form); });
+  // static sites (no Blogger contact form): a clear note instead of a form that can't send. GCO.formFallback = { tool: html, help: html }
+  var FALLBACK = '<p class="fb-fallback"><b>Our message form is moving to a new home.</b> For now, please use the ' +
+    '<a href="https://help.groupchaton.com/p/contact-support.html">Contact support</a> page, and we reply by email.</p>';
+  function formBox(box, mode) {
+    box.innerHTML = '';
+    if (hasCF) box.appendChild(requestForm(null, mode).form);
+    else box.innerHTML = (C.formFallback || {})[mode] || FALLBACK;
+  }
+  $$('[data-tool-request]').forEach(function (box) { formBox(box, 'tool'); });
+  $$('[data-help-request]').forEach(function (box) { formBox(box, 'help'); });
   // anywhere else: a pop-up
   doc.addEventListener('click', function (e) {
     var t = e.target.closest && e.target.closest('[data-feedback]');
@@ -345,14 +356,15 @@
     doc.head.appendChild(el('script', { type: 'application/ld+json', text: JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }) }));
   }
   // breadcrumbs for search engines: Home › Category › Tool
+  var hasCrumbs = $$('script[type="application/ld+json"]').some(function (s) { return /BreadcrumbList/.test(s.textContent); });
   if (article) {
     var title = ($('.post-title', article) || {}).textContent || doc.title;
     var cat = $('.post-labels a', article), items = [[C.homeName || 'Tools', '/']];
     if (cat) items.push([cat.textContent.trim(), cat.getAttribute('href').replace(ORIGIN, '')]);
     items.push([title.trim(), PATH]);
-    addJsonLd([{ '@type': 'BreadcrumbList', itemListElement: items.map(function (it, i) {
+    if (!hasCrumbs) addJsonLd([{ '@type': 'BreadcrumbList', itemListElement: items.map(function (it, i) {
       return { '@type': 'ListItem', position: i + 1, name: it[0], item: ORIGIN + it[1] }; }) }]);
-    if (cat) { var cr = $('.crumb', article); if (cr) cr.appendChild(el('a', { href: cat.getAttribute('href'), text: cat.textContent.trim() })); }
+    if (cat) { var cr = $('.crumb', article); if (cr && cr.children.length < 2) cr.appendChild(el('a', { href: cat.getAttribute('href'), text: cat.textContent.trim() })); }
     var end = adSlot('ad-end', A.end);
     if (end) article.appendChild(end);
   }
@@ -465,8 +477,8 @@
    category, one-line description and an Open button, from data/tools.json. Rows shimmer until the details arrive. */
 ;(function () {
   function go() {
-    var rows = Array.prototype.slice.call(document.querySelectorAll('.post-list .post-row'));
-    if (!rows.length) return;
+    var rows = Array.prototype.slice.call(document.querySelectorAll('.post-list .post-row:not(.is-rich)'));
+    if (!rows.length) return;   // static sites write finished cards
     var list = rows[0].parentNode, base = (window.GCO || {}).base || '';
     list.classList.add('is-cards');
     function plain() { list.classList.add('is-plain'); }
