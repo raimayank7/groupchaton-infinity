@@ -9,7 +9,7 @@
   var C = window.GCO || {};
   var BASE = C.base || '';
   // EDIT: bump this after changing any file in assets/tools/, so browsers fetch the new version straight away
-  var VERSION = '2026-11-02.9';
+  var VERSION = '2026-11-02.10';
   var doc = document;
   var T = window.GCOTools = window.GCOTools || {};
 
@@ -19,21 +19,40 @@
   T.find = function (id) { return T.list.filter(function (t) { return t.id === id; })[0]; };
   T.cat = function (id) { return T.cats.filter(function (c) { return c.id === id; })[0] || { id: id, name: id, label: id, icon: '•', color: '#888' }; };
   // every published post, read from the blog's feed page by page (Blogger gives at most 150 per page): tool slug → its address (/yyyy/mm/slug.html)
-  function postPaths(start, acc) {
+  function feedPage(start, acc) {
     return fetch('/feeds/posts/summary?alt=json&max-results=150&start-index=' + start, { credentials: 'omit' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) {
-        var list = (d && d.feed && d.feed.entry) || [];
-        list.forEach(function (e) {
+        ((d && d.feed && d.feed.entry) || []).forEach(function (e) {
           var link = (e.link || []).filter(function (l) { return l.rel === 'alternate'; })[0];
           if (!link) return;
           var path = link.href.replace(/^https?:\/\/[^/]+/, '');
           acc[path.replace(/^.*\//, '').replace(/\.html$/, '')] = path;
           if (e.title) acc['title:' + e.title.$t] = path;   // posts imported in bulk get their address from the title
         });
-        var total = +((d && d.feed && d.feed.openSearch$totalResults) || {}).$t || 0;
-        return list.length && start - 1 + list.length < total && start < 5000 ? postPaths(start + list.length, acc) : acc;
+        return +((d && d.feed && d.feed.openSearch$totalResults) || {}).$t || 0;
       });
+  }
+  function postPaths() {   // the first page tells the total; the other pages are fetched at the same time
+    var acc = {};
+    return feedPage(1, acc).then(function (total) {
+      var more = [];
+      for (var s = 151; s <= Math.min(total, 6000); s += 150) more.push(feedPage(s, acc));
+      return Promise.all(more).then(function () { return acc; });
+    });
+  }
+  var PKEY = 'gco-tool-paths';   // the last post list, kept in this browser so links are right from the first paint
+  function savedPaths() { try { return JSON.parse(localStorage.getItem(PKEY) || 'null') || null; } catch (e) { return null; } }
+  function applyPaths(paths) {
+    T.list.forEach(function (t) {
+      var p = paths[t.slug] || paths['title:' + t.title];
+      if (p) t.path = p;
+      if (C.isApp) t.path = t.app ? '#' + t.id : (C.infinity || '') + '/search?q=' + encodeURIComponent(t.name);
+    });
+    Array.prototype.forEach.call(doc.querySelectorAll('[data-tool-link]'), function (a) {
+      var t = T.find(a.getAttribute('data-tool-link'));
+      if (t) a.setAttribute('href', t.path);
+    });
   }
   T.ready = fetch(BASE + 'data/tools.json?v=' + Math.floor(Date.now() / 6e5), { credentials: 'omit' })
     .then(function (r) { if (!r.ok) throw new Error('Tool list ' + r.status); return r.json(); })
@@ -43,20 +62,32 @@
       // until the post list arrives, a tool's link is a search for it; then it becomes the post's own address
       T.list.forEach(function (t) { t.path = '/search?q=' + encodeURIComponent(t.name); });
       if (C.isApp) return {};   // app.groupchaton.com: tools open inside the app (#id)
-      return postPaths(1, {}).catch(function () { return {}; });
+      var saved = savedPaths(), fresh = postPaths().then(function (p) {
+        if (Object.keys(p).length) { try { localStorage.setItem(PKEY, JSON.stringify(p)); } catch (e) {} }
+        return p;
+      }).catch(function () { return {}; });
+      if (!saved) return fresh;
+      fresh.then(applyPaths);   // posts added since the last visit get their address when the new list arrives
+      return saved;
     })
-    .then(function (paths) {
-      T.list.forEach(function (t) {
-        var p = paths[t.slug] || paths['title:' + t.title];
-        if (p) t.path = p;
-        if (C.isApp) t.path = t.app ? '#' + t.id : (C.infinity || '') + '/search?q=' + encodeURIComponent(t.name);
-      });
-      Array.prototype.forEach.call(doc.querySelectorAll('[data-tool-link]'), function (a) {
-        var t = T.find(a.getAttribute('data-tool-link'));
-        if (t) a.setAttribute('href', t.path);
-      });
-    })
+    .then(applyPaths)
     .catch(function (e) { if (window.console) console.warn('Infinity: tool list not loaded', e); });
+  if (!C.isApp) {
+    // a tool link tapped before the post list arrived: wait for it, then open the tool's own page instead of a search
+    doc.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a[data-tool-link]');
+      if (!a || e.ctrlKey || e.metaKey || e.shiftKey || !/^\/search\?q=/.test(a.getAttribute('href') || '')) return;
+      e.preventDefault();
+      T.ready.then(function () { var t = T.find(a.getAttribute('data-tool-link')); location.href = t ? t.path : a.href; });
+    }, true);
+    // a search that is exactly a tool's name (links from help articles, old bookmarks): go straight to that tool
+    var q = location.pathname === '/search' && /[?&]q=([^&]*)/.exec(location.search);
+    if (q) T.ready.then(function () {
+      var name = decodeURIComponent(q[1].replace(/\+/g, ' ')).trim().toLowerCase();
+      var t = T.list.filter(function (x) { return x.name.toLowerCase() === name || x.title.toLowerCase() === name; })[0];
+      if (t && !/^\/search/.test(t.path)) location.replace(t.path);
+    });
+  }
 
   /* ---------- libraries (fixed versions) ---------- */
   var CDN = 'https://cdnjs.cloudflare.com/ajax/libs/';
