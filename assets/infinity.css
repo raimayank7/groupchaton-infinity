@@ -506,3 +506,6 @@ html[data-theme='light'] .brand-logo.is-dark,html:not([data-theme='light']) .bra
 .inf-hero~.home-sec .thub-search:placeholder-shown,.inf-hero~.home-sec .thub:has(.thub-search:placeholder-shown)::before{display:none}
 /* the status line only takes space once it has a message */
 .fb-status:empty{display:none}
+
+/* GroupChatOn sister-site cards: the site's own bubble icon instead of a drawn symbol */
+.pick .pk-ic.is-mark{background:none;padding:0;overflow:hidden}.pick .pk-ic.is-mark img{width:100%;height:100%;display:block;border-radius:inherit}
