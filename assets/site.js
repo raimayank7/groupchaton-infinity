@@ -534,7 +534,7 @@
   // help.groupchaton.com: each article gets its section's icon (or its tool's icon), the section name and its description
   function helpCards(rows, list, base, t, plain) {
     var v = Math.floor(Date.now() / 6e5), get = function (f) { return fetch(base + 'data/' + f + '?v=' + v, { credentials: 'omit' }).then(function (r) { return r.json(); }); };
-    var SEC = { Tools: ['🛠️', '#0D9488'], Reading: ['📖', '#7C3AED'], Comments: ['💬', '#2563EB'], Share: ['👥', '#16A34A'], ShareYourGroup: ['👥', '#16A34A'], Site: ['⚙️', '#D97706'] };
+    var SEC = { Tools: ['🛠️', '#0D9488'], Reading: ['📖', '#7C3AED'], Comments: ['💬', '#2563EB'], Share: ['👥', '#16A34A'], DeskOrg: ['🗂️', '#8C7BFF'], ShareYourGroup: ['👥', '#16A34A'], Site: ['⚙️', '#D97706'] };
     Promise.all([get('help.json'), get('tools.json').catch(function () { return { tools: [] }; })]).then(function (r) {
       clearTimeout(t);
       var byTitle = {}, tools = (r[1].tools || []).slice().sort(function (a, b) { return b.name.length - a.name.length; });
@@ -646,6 +646,8 @@
       ['Font, size and theme', 'Continue where you left off', 'Find any chapter', 'New chapter alerts', 'Request a novel', 'Report a typo']],
     Comments: ['💬', 'What to do when comments on a chapter or article do not appear, and how to get the comment box working on your phone or computer.',
       ['Comments not showing', 'Fixes for phone and computer']],
+    DeskOrg: ['🗂️', 'Help for DeskOrg, the free Windows desktop organizer: installing it, tidying your desktop with one click, finding moved files, editing rules, automation and uninstalling.',
+      ['Install and the Windows warning', 'Organize Now', 'Find moved files', 'Edit rules', 'Smart Automation', 'Uninstall']],
     Share: ['👥', 'Help for Share, our WhatsApp group and channel directory: adding your group or channel, finding and joining safely, reporting a bad listing and fixing problems.',
       ['Add your group or channel', 'Find, save and join', 'Report a listing', 'Describe or categorise a listing', 'Stay safe', 'Groups vs channels']],
     Site: ['⚙️', 'How the GroupChatOn sites work, including why you see ads and how your privacy is protected.',
