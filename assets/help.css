@@ -304,3 +304,10 @@ html[data-theme='light'] .brand-logo.is-dark,html:not([data-theme='light']) .bra
 /* footer: the same logo picture as the header, a little larger */
 .site-footer .brand-logo.ft-logo{height:44px}
 @media (max-width:520px){.site-footer .brand-logo.ft-logo{height:36px}}
+
+/* WhatsApp help in other languages (2026-11-02) */
+.help-langs{margin:6px 0 18px;font-size:15px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.help-langs a{font-weight:600}
+.help-langs b{color:var(--ink)}
+.post-body .help-note{margin-top:22px;padding:12px 14px;border-radius:12px;background:var(--surface-2,rgba(13,148,136,.08));font-size:14.5px;color:var(--muted)}
+:lang(hi) .post-body,:lang(bho) .post-body,:lang(pa) .post-body{line-height:1.85}
