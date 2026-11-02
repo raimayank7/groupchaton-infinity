@@ -239,9 +239,12 @@ html[data-theme='dark'] .notice-bar{background:#2A2210;border-color:#4D3B16}
 .brand-logo{display:block;height:38px;width:auto;max-width:none}
 html[data-theme='light'] .brand-logo.is-dark,html:not([data-theme='light']) .brand-logo.is-light{display:none}
 @media (max-width:520px){.brand-logo{height:30px}}
-/* very small phones (320 px): logo, gaps and buttons shrink so the header never scrolls sideways */
-.brand{min-width:0;flex:0 1 auto}
+/* the header row is wider than the reading column so the full desktop menu (above 1340 px) fits beside the logo */
+.site-header .container{max-width:1320px}
+/* very small phones (320 px): logo, gaps and buttons shrink so the header never scrolls sideways
+   (only here: on wider screens a shrinkable logo was squeezed to nothing and the menu covered it) */
 @media (max-width:380px){
+  .brand{min-width:0;flex:0 1 auto}
   .site-header .container{padding:0 12px}
   .nav-wrap{gap:8px}
   .brand-logo{height:24px}
