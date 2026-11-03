@@ -172,15 +172,34 @@
     if (kind !== 'in-article' && kind !== 'multiplex') ins.setAttribute('data-full-width-responsive', 'false');
     ins.style.display = 'block';
     d.appendChild(ins);
-    // when Google has no ad for it, a sponsored card takes the slot, or it collapses
+    // when Google has no ad for it ('unfilled', or 'unfill-optimized' in Edge/Firefox), a sponsored card takes the slot, or it collapses
+    var settled = false;
+    function empty() { if (settled) return; settled = true; if (!pickInto(d)) d.classList.add('is-empty'); }
     if (window.MutationObserver) new MutationObserver(function (m, o) {
       var st = ins.getAttribute('data-ad-status');
-      if (st === 'unfilled') { if (!pickInto(d)) d.classList.add('is-empty'); o.disconnect(); }
-      else if (st === 'filled') o.disconnect();
+      if (/^unfill/.test(st || '')) { empty(); o.disconnect(); }
+      else if (st === 'filled') { settled = true; o.disconnect(); }
     }).observe(ins, { attributes: true, attributeFilter: ['data-ad-status'] });
+    // no answer at all after 10 s (blocked request, slow network): the space is not left empty either
+    setTimeout(function () { if (!settled && !ins.getAttribute('data-ad-status') && !ins.querySelector('iframe')) empty(); }, 10000);
     try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
   }
   C.adSlot = adSlot;   // kit.js puts one between the tool and its guide
+
+  /* copy text: the Clipboard API first, then the old hidden-textarea way when the browser refuses it
+     (Safari, Firefox, frames). Resolves true when it worked, false when the visitor has to copy by hand. */
+  C.copy = function (text) {
+    function old() {
+      var t = el('textarea', { readonly: 'readonly', 'aria-hidden': 'true', style: 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0' });
+      t.value = text; body.appendChild(t); t.select();
+      var ok = false; try { ok = doc.execCommand('copy'); } catch (e) {}
+      body.removeChild(t); return ok;
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text).then(function () { return true; }, old);
+    } catch (e) {}
+    return Promise.resolve(old());
+  };
   if (C.adClient) {
     var anchorChecks = 0, anchorTimer = setInterval(function () {
       var a = doc.querySelector('ins.adsbygoogle[data-anchor-status="displayed"], ins.adsbygoogle[data-anchor-shown="true"]');
@@ -420,7 +439,7 @@
   window.addEventListener('load', function () {
     if (!C.adClient) return;
     setTimeout(function () {
-      if (window.adsbygoogle && window.adsbygoogle.loaded) return;
+      if (NO_ADS || (window.adsbygoogle && window.adsbygoogle.loaded)) return;   // pages without ads never ask to allow them
       html.classList.add('no-ads');   // ads blocked: close up the empty ad boxes, sponsored cards take some of them
       adsBlocked = true;
       $$('.ad-slot').forEach(pickInto);
@@ -639,11 +658,37 @@
   var box = document.querySelector('.help-comments'), btn = box && box.querySelector('[data-load-comments]');
   if (btn) {
     var b2 = btn.cloneNode(true); btn.parentNode.replaceChild(b2, btn);   // drops the old handler that asked the wrong Disqus site
+    var CMS = {
+      en: ['Loading comments…', 'Comments are open below.', 'Comments could not load. An ad blocker or your browser’s tracking protection may be blocking disqus.com: allow it, then tap Try again.', 'Try again'],
+      hi: ['टिप्पणियाँ खुल रही हैं…', 'टिप्पणियाँ नीचे खुल गई हैं।', 'टिप्पणियाँ नहीं खुलीं। हो सकता है ऐड ब्लॉकर या ब्राउज़र disqus.com को रोक रहा हो: उसे अनुमति दें, फिर “फिर से कोशिश करें” दबाएँ।', 'फिर से कोशिश करें'],
+      pa: ['ਟਿੱਪਣੀਆਂ ਖੁੱਲ੍ਹ ਰਹੀਆਂ ਹਨ…', 'ਟਿੱਪਣੀਆਂ ਹੇਠਾਂ ਖੁੱਲ੍ਹ ਗਈਆਂ ਹਨ।', 'ਟਿੱਪਣੀਆਂ ਨਹੀਂ ਖੁੱਲ੍ਹੀਆਂ। ਹੋ ਸਕਦਾ ਹੈ ਐਡ ਬਲੌਕਰ ਜਾਂ ਬ੍ਰਾਊਜ਼ਰ disqus.com ਨੂੰ ਰੋਕ ਰਿਹਾ ਹੋਵੇ: ਇਸਨੂੰ ਇਜਾਜ਼ਤ ਦਿਓ, ਫਿਰ “ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ” ਦਬਾਓ।', 'ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ'],
+      bho: ['टिप्पणी खुलत बा…', 'टिप्पणी नीचे खुल गइल।', 'टिप्पणी ना खुलल। हो सकेला कि ऐड ब्लॉकर भा ब्राउज़र disqus.com के रोकत होखे: ओकरा के अनुमति दीं, फेर “फेर से कोसिस करीं” दबाईं।', 'फेर से कोसिस करीं']
+    };
+    var CM = CMS[(document.documentElement.lang || 'en').split('-')[0]] || CMS.en;
+    var head = box.querySelector('h2'), thread = document.getElementById('disqus_thread');
+    var st = document.createElement('p'); st.className = 'cm-status'; st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite');
+    b2.parentNode.insertBefore(st, b2.nextSibling);
+    if (thread) b2.setAttribute('aria-controls', 'disqus_thread');
+    b2.setAttribute('aria-expanded', 'false');
+    var loaded = false, waitT = 0;
+    function shown() { return !!(thread && thread.querySelector('iframe')); }
+    function ok() { if (loaded) return; loaded = true; clearTimeout(waitT); st.className = 'cm-status'; st.textContent = CM[1]; }
+    function failed() {
+      if (loaded || shown()) return ok();
+      st.className = 'cm-status is-error'; st.textContent = CM[2];
+      b2.hidden = false; b2.setAttribute('aria-expanded', 'false'); b2.textContent = CM[3];
+    }
+    if (thread && window.MutationObserver) new MutationObserver(function () { if (shown()) ok(); }).observe(thread, { childList: true, subtree: true });
     b2.addEventListener('click', function () {
-      b2.hidden = true;
+      b2.hidden = true; b2.setAttribute('aria-expanded', 'true');
+      st.className = 'cm-status'; st.textContent = CM[0];
+      if (head) { head.setAttribute('tabindex', '-1'); head.focus(); }   // focus stays in the comments, not lost to the top of the page
       var url = box.getAttribute('data-url'), id = 'help-' + box.getAttribute('data-id');
       window.disqus_config = function () { this.page.url = url; this.page.identifier = id; };
+      clearTimeout(waitT); waitT = setTimeout(failed, 15000);
+      if (window.DISQUS && window.DISQUS.reset) { try { window.DISQUS.reset({ reload: true, config: window.disqus_config }); } catch (e) {} return; }
       var sc = document.createElement('script'); sc.src = 'https://group4whatsapp.disqus.com/embed.js'; sc.setAttribute('data-timestamp', String(+new Date()));
+      sc.onerror = function () { sc.remove(); failed(); };
       document.body.appendChild(sc);
     });
   }
