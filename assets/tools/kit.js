@@ -9,7 +9,7 @@
   var C = window.GCO || {};
   var BASE = C.base || '';
   // EDIT: bump this after changing any file in assets/tools/, so browsers fetch the new version straight away
-  var VERSION = '2026-11-02.17';
+  var VERSION = '2026-11-03.18';
   var doc = document;
   var T = window.GCOTools = window.GCOTools || {};
 
@@ -157,13 +157,20 @@
     });
     return loading[src];
   };
+  // a library still downloading after a moment: say so in the status line that is busy, so a slow first load never looks stuck
+  var LIBNAME = { pdfjs: 'the PDF engine', pdflib: 'the PDF engine', tesseract: 'the text reader', jspdf: 'the PDF maker', html2canvas: 'the page snapshot tool',
+    jszip: 'the ZIP maker', terser: 'the code minifier', leaflet: 'the map', yaml: 'the YAML reader' };
+  var busy = null;
   T.lib = function (name) {
-    var l = LIBS[name];
+    var l = LIBS[name], timer = !window[l[1]] && setTimeout(function () {
+      if (busy) busy.note('Loading ' + (LIBNAME[name] || 'a helper') + ' (first time only, a few seconds on a slow connection)…');
+    }, 900);
     return T.loadScript(l[0]).then(function () {
+      clearTimeout(timer);
       var g = window[l[1]];
       if (name === 'pdfjs' && g && !g.GlobalWorkerOptions.workerSrc) g.GlobalWorkerOptions.workerSrc = CDN + 'pdf.js/3.11.174/pdf.worker.min.js';
       return g;
-    });
+    }, function (e) { clearTimeout(timer); throw e; });
   };
 
   /* ---------- small helpers ---------- */
@@ -208,16 +215,29 @@
     });
   };
   T.copy = function (text, btn) {
+    var box = btn && btn.parentNode && btn.parentNode.querySelector('.tcopy-by-hand');
     var done = function () {
+      if (box) box.remove();
       if (!btn) return;
       var old = btn.textContent; btn.textContent = 'Copied ✓';
       setTimeout(function () { btn.textContent = old; }, 1600);
     };
-    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text).then(done);
-    var ta = h('textarea', { style: 'position:fixed;opacity:0' }); ta.value = text;
-    doc.body.appendChild(ta); ta.select();
-    try { doc.execCommand('copy'); done(); } catch (e) {}
-    ta.remove();
+    function legacy() {
+      var ta = h('textarea', { readonly: true, style: 'position:fixed;top:0;left:0;opacity:0;font-size:16px' }), ok = false; ta.value = text;
+      doc.body.appendChild(ta); ta.select(); try { ta.setSelectionRange(0, text.length); } catch (e) {}
+      try { ok = doc.execCommand('copy'); } catch (e) {}
+      ta.remove(); return ok;
+    }
+    function byHand() {   // the browser refused both ways: show the text selected, ready for Ctrl+C or long-press › Copy
+      if (!btn || !btn.parentNode) return;
+      if (box) box.remove();
+      var ta = h('textarea', { readonly: true, rows: '3', 'class': 'tmono', 'aria-label': 'Text to copy' }); ta.value = text;
+      box = h('div', { 'class': 'tcopy-by-hand', role: 'status' }, [h('small', { text: 'This browser blocked the copy button. The text is selected below: press Ctrl+C (or long-press › Copy).' }), ta]);
+      btn.parentNode.insertBefore(box, btn.nextSibling);
+      ta.focus(); ta.select();
+    }
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text).then(done, function () { if (legacy()) done(); else byHand(); });
+    if (legacy()) done(); else byHand();
     return Promise.resolve();
   };
   T.store = {
@@ -229,7 +249,7 @@
   T.button = function (text, opts) {
     opts = opts || {};
     return h('button', { type: 'button', 'class': 'tbtn' + (opts.primary ? ' tbtn-primary' : '') + (opts.small ? ' tbtn-sm' : ''),
-      onclick: opts.onclick, disabled: opts.disabled }, [text]);
+      onclick: opts.onclick, disabled: opts.disabled, title: opts.title }, [text]);
   };
   T.field = function (label, input, hint) {
     return h('label', { 'class': 'tfield' }, [h('span', { 'class': 'tfield-label', text: label }), input, hint ? h('small', { text: hint }) : null]);
@@ -323,14 +343,33 @@
     var msg = h('p', { 'class': 'tstatus', role: 'status', 'aria-live': 'polite' });
     var wrap = h('div', { 'class': 'tstatus-wrap' }, [bar, msg]);
     function set(kind, text) { msg.className = 'tstatus' + (kind ? ' is-' + kind : ''); msg.textContent = text || ''; }
-    return {
+    var api = {
       el: wrap,
-      info: function (t) { set('', t); },
-      ok: function (t) { bar.hidden = true; set('ok', t); },
-      error: function (e) { bar.hidden = true; set('error', (e && e.message) || String(e)); },
-      progress: function (p, t) { bar.hidden = false; bar.firstChild.style.width = Math.round(Math.max(0, Math.min(1, p)) * 100) + '%'; if (t) set('', t); },
-      clear: function () { bar.hidden = true; set('', ''); }
+      info: function (t) { set('', t); busy = t ? api : null; },
+      ok: function (t) { bar.hidden = true; set('ok', t); if (busy === api) busy = null; },
+      error: function (e) { bar.hidden = true; set('error', (e && e.message) || String(e)); if (busy === api) busy = null; },
+      progress: function (p, t) { bar.hidden = false; bar.firstChild.style.width = Math.round(Math.max(0, Math.min(1, p)) * 100) + '%'; if (t) set('', t); busy = api; },
+      clear: function () { bar.hidden = true; set('', ''); if (busy === api) busy = null; },
+      note: function (t) { if (!msg.className.match(/is-(ok|error)/)) msg.textContent = t; }
     };
+    return api;
+  };
+  // rendered previews (Markdown, HTML demos) must not add headings to the page outline or unnamed form fields:
+  // h1–h6 become look-alike divs with role=heading one level below the page, and unnamed fields get a name
+  T.tame = function (el) {
+    Array.prototype.forEach.call(el.querySelectorAll('h1,h2,h3,h4,h5,h6'), function (x) {
+      var n = +x.tagName.charAt(1), d = h('div', { 'class': 'th-demo th-demo' + n, role: 'heading', 'aria-level': String(Math.min(n + 1, 6)) });
+      if (x.id) d.id = x.id;
+      while (x.firstChild) d.appendChild(x.firstChild);
+      x.parentNode.replaceChild(d, x);
+    });
+    Array.prototype.forEach.call(el.querySelectorAll('input,select,textarea,button'), function (c) {
+      if (c.getAttribute('aria-label') || c.type === 'hidden' || (c.labels && c.labels.length) || (c.tagName === 'BUTTON' && c.textContent.trim())) return;
+      var li = c.closest && c.closest('li');
+      var name = c.placeholder || (c.type === 'checkbox' && li ? (c.checked ? 'Done: ' : 'To do: ') + li.textContent.trim() : '') || (c.type === 'submit' ? 'Submit' : 'Example ' + (c.type || c.tagName.toLowerCase()) + ' field');
+      c.setAttribute('aria-label', name.slice(0, 80));
+    });
+    return el;
   };
 
   // a box of result files with download buttons (+ "download all as ZIP")
@@ -454,10 +493,12 @@
     return T.store.get('currency', null) || T.curDefault || (/^Asia\/(Kolkata|Calcutta)$/.test(tz) ? 'INR' : '') || REGION_CUR[(LANG.split('-')[1] || '').toUpperCase()] || 'USD';
   };
   function locFor(cur) { return cur === 'INR' ? 'en-IN' : LANG; }   // lakh / crore grouping for rupees
-  T.money = function (n, cur) {
+  T.money = function (n, cur, dp) {
     cur = cur || T.currency();
     if (!isFinite(n)) return '—';
-    try { return new Intl.NumberFormat(locFor(cur), { style: 'currency', currency: cur, maximumFractionDigits: Math.abs(n) >= 1000 || n % 1 === 0 ? 0 : 2 }).format(n); }   // whole amounts never get .00, so ₹1,600 and ₹400 match
+    var o = { style: 'currency', currency: cur, maximumFractionDigits: dp != null ? dp : Math.abs(n) >= 1000 || n % 1 === 0 ? 0 : 2 };
+    if (dp != null) o.minimumFractionDigits = dp;
+    try { return new Intl.NumberFormat(locFor(cur), o).format(n); }   // whole amounts never get .00, so ₹1,600 and ₹400 match
     catch (e) { return cur + ' ' + T.num(n, 2); }
   };
   /* 6.68e-9 → "6.68 × 10⁻⁹" (superscript power, readable in plain text) */
@@ -757,13 +798,13 @@
       var q = h('input', { type: 'search', 'class': 'thub-search', placeholder: 'Search ' + T.list.length + ' free tools…', 'aria-label': 'Search tools', enterkeyhint: 'search' });
       var startQ = new URLSearchParams(location.search).get('q');
       if (startQ && !label) q.value = startQ;
-      var chips = h('div', { 'class': 'thub-cats', role: 'tablist', 'aria-label': 'Categories' });
+      var chips = h('div', { 'class': 'thub-cats', role: 'group', 'aria-label': 'Categories' });
       var body = h('div', { 'class': 'thub-body' });
       var count = h('p', { 'class': 'thub-count', role: 'status', 'aria-live': 'polite' });
       var PAGE = 48, limit = PAGE, timer = 0, popIds = {};
       function chip(id, name, icon, color, n) {
-        return h('button', { type: 'button', role: 'tab', 'class': 'thub-chip', 'data-cat': id, style: color ? '--cc:' + color : null,
-          'aria-selected': String(cat === id), onclick: function () { pickCat(id); } }, [h('span', { 'aria-hidden': 'true', text: icon }), name, h('em', { text: String(n) })]);
+        return h('button', { type: 'button', 'class': 'thub-chip', 'data-cat': id, style: color ? '--cc:' + color : null,
+          'aria-pressed': String(cat === id), onclick: function () { pickCat(id); } }, [h('span', { 'aria-hidden': 'true', text: icon }), name, h('em', { text: String(n) })]);
       }
       function pickCat(id) { cat = id; limit = PAGE; draw(); if (id !== 'all' && spot.scrollIntoView) spot.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
       function drawChips() {
@@ -1004,9 +1045,37 @@
     b.setAttribute('data-ic', text);
   }
   T.icons = function (root) { Array.prototype.slice.call((root || doc).querySelectorAll('.tbtn')).forEach(icDecorate); };
+  // every control in a tool needs a name for screen readers: a field without a label is named from its placeholder,
+  // the text just before it or its title. A name added here is dropped again once real text appears.
+  function nameOf(c) {
+    if (c.title || c.tagName === 'BUTTON') return c.title;
+    if (c.placeholder) return c.placeholder;
+    var p = c.previousElementSibling, t = p && !/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(p.tagName) ? p.textContent.replace(/\s+/g, ' ').trim() : '';
+    if (t && t.length < 60) return t;
+    if (c.tagName === 'SELECT' && c.options.length) return 'Choose: ' + c.options[c.selectedIndex >= 0 ? c.selectedIndex : 0].text;
+    return { checkbox: 'Option', radio: 'Choice', range: 'Slider', color: 'Colour', date: 'Date', time: 'Time', number: 'Number', file: 'Choose a file' }[c.type] || '';
+  }
+  T.names = function (root) {
+    Array.prototype.forEach.call((root || doc).querySelectorAll('.tool-app button, .tool-app select, .tool-app input:not([type=hidden]), .tool-app textarea'), function (c) {
+      var auto = c.hasAttribute('data-auto-name'), has = c.tagName === 'BUTTON' ? !!c.textContent.trim() : !!((c.labels && c.labels.length) || c.closest('label'));
+      if (auto) { if (has) { c.removeAttribute('aria-label'); c.removeAttribute('data-auto-name'); } return; }
+      if (has || c.hasAttribute('aria-label') || c.hasAttribute('aria-labelledby')) return;
+      var n = nameOf(c); if (!n) return;
+      c.setAttribute('aria-label', n.slice(0, 80)); c.setAttribute('data-auto-name', '');
+    });
+    // aria-label is only allowed on an element with a role: a labelled board square or picture becomes an image, a box of controls a group
+    Array.prototype.forEach.call((root || doc).querySelectorAll('.tool-app div[aria-label]:not([role]), .tool-app span[aria-label]:not([role])'), function (e) {
+      e.setAttribute('role', e.hasAttribute('tabindex') && e.tabIndex >= 0 ? 'button' : e.children.length ? 'group' : 'img');
+    });
+    // headings inside a tool come right after the page's h1: an h3 there counts as level 2 (unless the tool has its own h2)
+    Array.prototype.forEach.call((root || doc).querySelectorAll('.tool-app'), function (app) {
+      if (app.querySelector('h2')) return;
+      Array.prototype.forEach.call(app.querySelectorAll('h3:not([aria-level]), h4:not([aria-level])'), function (x) { x.setAttribute('aria-level', x.tagName === 'H3' ? '2' : '3'); });
+    });
+  };
   (function () {
     var queued = false;
-    function run() { queued = false; T.icons(); }
+    function run() { queued = false; T.icons(); T.names(); }
     function later() { if (!queued) { queued = true; setTimeout(run, 16); } }
     if (!window.MutationObserver) return;
     new MutationObserver(later).observe(doc.documentElement, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['href'] });

@@ -17,7 +17,7 @@ GCOTools.register('pictionary', function (spot, T) {
   var level = T.store.get('pc-level', 'easy'), bags = { easy: bag('easy'), medium: bag('medium'), hard: bag('hard') }, word = '', shown = false, tick = null, left = 0;
   var teams = T.store.get('pc-teams', [{ n: 'Team A', s: 0 }, { n: 'Team B', s: 0 }]), turn = 0;
   var secs = T.select([[30, '30 seconds'], [60, '60 seconds'], [90, '90 seconds'], [120, '2 minutes']], T.store.get('pc-secs', 60));
-  var card = h('button', { type: 'button', style: 'width:100%;min-height:120px;border:0;border-radius:18px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;font:900 clamp(26px,8vw,40px)/1.15 var(--ui);cursor:pointer;padding:16px', onclick: function () { if (word) { shown = !shown; paint(); } else next(); } });
+  var card = h('button', { type: 'button', style: 'width:100%;min-height:120px;border:0;border-radius:18px;background:linear-gradient(135deg,#b45309,#b91c1c);color:#fff;font:900 clamp(26px,8vw,40px)/1.15 var(--ui);cursor:pointer;padding:16px', onclick: function () { if (word) { shown = !shown; paint(); } else next(); } });
   var clock = h('div', { 'data-out': '', 'aria-live': 'off', style: 'font:900 44px/1 var(--ui);text-align:center' }), turnEl = h('div', { style: 'text-align:center;font-weight:800' }), board = h('div', { 'class': 'tstats' });
   function paint() {
     card.textContent = !word ? 'Tap for a word' : shown ? word : '👀 Tap to see the word (drawer only)';
@@ -50,7 +50,8 @@ GCOTools.register('pictionary', function (spot, T) {
   pad.addEventListener('pointerup', function () { down = false; });
   function clearPad() { g.fillStyle = '#fff'; g.fillRect(0, 0, pad.width, pad.height); }
   var tools = h('div', { style: 'display:flex;flex-wrap:wrap;gap:6px;align-items:center' });
-  ['#111827', '#dc2626', '#2563eb', '#16a34a', '#f59e0b', '#9333ea'].forEach(function (c) { tools.appendChild(h('button', { type: 'button', 'aria-label': 'Pen colour', style: 'width:32px;height:32px;border-radius:50%;border:2px solid var(--line);background:' + c + ';cursor:pointer', onclick: function () { pen.c = c; pen.w = sizeSel.value === 'b' ? 14 : 6; } })); });
+  var PEN = { '#111827': 'Black', '#dc2626': 'Red', '#2563eb': 'Blue', '#16a34a': 'Green', '#f59e0b': 'Yellow', '#9333ea': 'Purple' };
+  Object.keys(PEN).forEach(function (c) { tools.appendChild(h('button', { type: 'button', 'aria-label': PEN[c] + ' pen', style: 'width:32px;height:32px;border-radius:50%;border:2px solid var(--line);background:' + c + ';cursor:pointer', onclick: function () { pen.c = c; pen.w = sizeSel.value === 'b' ? 14 : 6; } })); });
   var sizeSel = T.seg([['t', 'Thin'], ['b', 'Thick']], 't', function (v) { pen.w = v === 'b' ? 14 : 6; });
   tools.appendChild(sizeSel);
   tools.appendChild(T.button('Eraser', { small: true, onclick: function () { pen.c = '#fff'; pen.w = 30; } }));
@@ -62,7 +63,7 @@ GCOTools.register('pictionary', function (spot, T) {
     teams.forEach(function (t, i) {
       var inp = h('input', { type: 'text', value: t.n, maxlength: '20', 'aria-label': 'Team name' });
       inp.addEventListener('input', function () { t.n = inp.value || 'Team ' + (i + 1); paint(); });
-      teamBox.appendChild(h('div', { style: 'display:flex;gap:6px;align-items:center' }, [inp, T.button('−1', { small: true, onclick: function () { t.s = Math.max(0, t.s - 1); paint(); } }), teams.length > 2 ? T.button('✕', { small: true, onclick: function () { teams.splice(i, 1); turn = 0; teamEditor(); paint(); } }) : null]));
+      teamBox.appendChild(h('div', { style: 'display:flex;gap:6px;align-items:center' }, [inp, T.button('−1', { small: true, onclick: function () { t.s = Math.max(0, t.s - 1); paint(); } }), teams.length > 2 ? T.button('✕', { small: true, title: 'Remove team', onclick: function () { teams.splice(i, 1); turn = 0; teamEditor(); paint(); } }) : null]));
     });
     if (teams.length < 6) teamBox.appendChild(T.button('+ Add a team', { small: true, onclick: function () { teams.push({ n: 'Team ' + String.fromCharCode(65 + teams.length), s: 0 }); teamEditor(); paint(); } }));
   }

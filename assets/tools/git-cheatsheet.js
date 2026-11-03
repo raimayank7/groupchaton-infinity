@@ -63,7 +63,7 @@ GCOTools.register('git-cheatsheet', function (spot, T) {
       var cmd = fill(g[1], vals);
       list.appendChild(h('div', { style: 'padding:10px 12px;border:1px solid ' + (g[3] ? '#f59e0b' : 'var(--line)') + ';border-radius:12px;background:var(--bg);display:grid;gap:6px' }, [h('b', { text: g[0] }),
         h('pre', { 'class': 'tmono', style: 'margin:0;white-space:pre-wrap;padding:8px;border-radius:8px;background:var(--surface-2)', text: cmd }), h('small', { text: fill(g[2], vals) }),
-        g[3] ? h('small', { style: 'color:#b45309;font-weight:600', text: '⚠ ' + g[3] }) : null, T.row([T.button('Copy', { small: true, onclick: function (e) { T.copy(cmd, e.currentTarget); } })])]));
+        g[3] ? h('small', { style: 'color:var(--t-amber);font-weight:600', text: '⚠ ' + g[3] }) : null, T.row([T.button('Copy', { small: true, onclick: function (e) { T.copy(cmd, e.currentTarget); } })])]));
     });
   }
   [q, v.b, v.r, v.f, v.m].forEach(function (x) { x.addEventListener('input', draw); });

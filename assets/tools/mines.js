@@ -32,7 +32,7 @@ GCOTools.register('mines', function (spot, T) {
     '.tmn div.o{background:var(--surface);box-shadow:none;cursor:default}.tmn div.b{background:#fecaca}.tmn div.k{outline:3px solid var(--accent);outline-offset:-1px}');
   var G = null, level = T.store.get('mn-level', 'easy'), flagMode = false, cursor = 0, t0 = 0, timer = null, press = null;
   var lvSel = T.select([['easy', 'Easy: 9 × 9, 10 mines'], ['medium', 'Medium: 12 × 12, 24 mines'], ['hard', 'Hard: 16 × 16, 40 mines']], level);
-  var board = h('div', { 'class': 'tmn', tabindex: '0', role: 'grid', 'aria-label': 'Mine field. Arrow keys move, Space opens, F places a flag.' });
+  var board = h('div', { 'class': 'tmn', tabindex: '0', role: 'group', 'aria-label': 'Mine field. Arrow keys move, Space opens, F places a flag.' });
   var left = h('b', { text: '0' }), clock = h('b', { text: '0' }), best = h('b', { text: '-' }), out = h('div', { 'data-out': '', 'aria-live': 'polite', style: 'font-weight:700;text-align:center;min-height:22px' });
   var flagBtn = T.button('🚩 Flag mode: off', { small: true, onclick: function () { flagMode = !flagMode; flagBtn.textContent = '🚩 Flag mode: ' + (flagMode ? 'on' : 'off'); flagBtn.setAttribute('aria-pressed', String(flagMode)); } });
   function reset() {
@@ -42,7 +42,7 @@ GCOTools.register('mines', function (spot, T) {
     t0 = 0; cursor = 0; out.textContent = ''; status.clear(); clearInterval(timer); timer = null;
     board.style.gridTemplateColumns = 'repeat(' + G.C + ',minmax(0,1fr))'; board.style.width = 'min(100%,' + G.C * 40 + 'px)';
     board.innerHTML = '';
-    for (i = 0; i < G.R * G.C; i++) board.appendChild(h('div', { 'data-k': String(i), role: 'gridcell' }));
+    for (i = 0; i < G.R * G.C; i++) board.appendChild(h('div', { 'data-k': String(i), role: 'img' }));
     var b = T.store.get('mn-best-' + level, 0); best.textContent = b ? b + ' s' : '-';
     draw();
   }

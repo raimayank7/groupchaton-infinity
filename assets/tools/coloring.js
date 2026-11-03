@@ -27,6 +27,13 @@ GCOTools.register('coloring', function (spot, T) {
       return f(function (x) { return x === l; }) || f(function (x) { return x.slice(0, 2) === l.slice(0, 2); }) || null;
     }
     // say(text, 'hi-IN', { fallback: 'said in English when the device has no voice for that language', rate, onend, onboundary, queue })
+    // Gurmukhi → Devanagari, so a Hindi voice can read Punjabi when the device has no Punjabi voice (most computers, many phones)
+    function toDeva(s) {
+      return String(s).replace(/ਸ਼/g, 'ਸ਼').replace(/ਲ਼/g, 'ਲ਼').replace(/ੱ([ਕ-ਹਖ਼-ਫ਼]਼?)/g, '$1੍$1').replace(/[ਁ-੯ੰੲੳ]/g, function (c) {
+        var k = c.charCodeAt(0);
+        return k === 0x0A70 ? 'ं' : k === 0x0A72 ? 'इ' : k === 0x0A73 ? 'उ' : String.fromCharCode(k - 0x100);
+      });
+    }
     function say(text, lang, o) {
       o = o || {};
       if (!synth || !window.SpeechSynthesisUtterance || !text) return null;
@@ -34,6 +41,7 @@ GCOTools.register('coloring', function (spot, T) {
         if (!o.queue) synth.cancel();
         lang = lang || 'en-US';
         var v = voice(lang);
+        if (!v && /^pa/i.test(lang) && voice('hi-IN')) { text = toDeva(text); lang = 'hi-IN'; v = voice(lang); }
         if (!v && o.fallback != null && voices().length) { if (!o.fallback) return null; text = o.fallback; lang = 'en-US'; v = voice(lang); }
         var u = new SpeechSynthesisUtterance(text);
         u.lang = lang; if (v) u.voice = v; u.rate = o.rate || 0.85; u.pitch = o.pitch || 1.05;

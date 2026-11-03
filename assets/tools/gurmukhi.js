@@ -27,6 +27,13 @@ GCOTools.register('gurmukhi', function (spot, T) {
       return f(function (x) { return x === l; }) || f(function (x) { return x.slice(0, 2) === l.slice(0, 2); }) || null;
     }
     // say(text, 'hi-IN', { fallback: 'said in English when the device has no voice for that language', rate, onend, onboundary, queue })
+    // Gurmukhi → Devanagari, so a Hindi voice can read Punjabi when the device has no Punjabi voice (most computers, many phones)
+    function toDeva(s) {
+      return String(s).replace(/ਸ਼/g, 'ਸ਼').replace(/ਲ਼/g, 'ਲ਼').replace(/ੱ([ਕ-ਹਖ਼-ਫ਼]਼?)/g, '$1੍$1').replace(/[ਁ-੯ੰੲੳ]/g, function (c) {
+        var k = c.charCodeAt(0);
+        return k === 0x0A70 ? 'ं' : k === 0x0A72 ? 'इ' : k === 0x0A73 ? 'उ' : String.fromCharCode(k - 0x100);
+      });
+    }
     function say(text, lang, o) {
       o = o || {};
       if (!synth || !window.SpeechSynthesisUtterance || !text) return null;
@@ -34,6 +41,7 @@ GCOTools.register('gurmukhi', function (spot, T) {
         if (!o.queue) synth.cancel();
         lang = lang || 'en-US';
         var v = voice(lang);
+        if (!v && /^pa/i.test(lang) && voice('hi-IN')) { text = toDeva(text); lang = 'hi-IN'; v = voice(lang); }
         if (!v && o.fallback != null && voices().length) { if (!o.fallback) return null; text = o.fallback; lang = 'en-US'; v = voice(lang); }
         var u = new SpeechSynthesisUtterance(text);
         u.lang = lang; if (v) u.voice = v; u.rate = o.rate || 0.85; u.pitch = o.pitch || 1.05;
@@ -144,7 +152,7 @@ GCOTools.register('gurmukhi', function (spot, T) {
   var consRow = T.field('Letter', pickCons);
   var learn = h('div', { style: 'display:grid;gap:14px;min-width:0' }, [h('div', { 'class': 'kstage' }, [big, pic, word, sub,
     T.button('🔊 Hear it', { primary: true, onclick: function () { if (tab === 'painti') speak(cur); else K.say(big.textContent, 'pa-IN', { fallback: '' }); } })]), consRow, grid,
-    h('p', { 'class': 'ksub', text: 'Sounds use your device’s Punjabi voice. If it has none, the letter name is read in English letters.' })]);
+    h('p', { 'class': 'ksub', text: 'Sounds use your device’s Punjabi voice. If it has none, a Hindi voice reads the same sounds (very close to Punjabi); with neither, the name is read in English letters.' })]);
   var q = K.quiz({ rounds: 10, next: function () {
     var all = PAINTI.filter(function (a) { return a[3]; }), a = K.pick(all), letters = PAINTI.map(function (x) { return x[0]; });
     if (K.rnd(2)) return { q: [h('div', { 'class': 'kpic', text: a[6] }), a[3] + ' (' + a[5] + ')', 'Which letter does it start with?'], a: a[0], opts: K.choices(a[0], letters, 4) };

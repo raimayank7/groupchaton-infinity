@@ -324,7 +324,7 @@ GCOTools.register('typing-tutor', function (spot, T) {
     if (kind === 'caps') return Y.words(10, function (w) { return w.length > 2 && w.length < 7; }).split(' ').map(function (w, k) { return k % 2 ? w : w[0].toUpperCase() + w.slice(1); }).join(' ');
     if (kind === 'num') { var o = []; for (var k = 0; k < 10; k++) { var s = ''; for (var m = 0, len = 2 + Y.rnd(3); m < len; m++) s += Y.rnd(10); o.push(s); } return o.join(' '); }
     if (kind === 'words') return Y.words(14);
-    if (kind === 'sentence') return Y.pick(Y.PASSAGES).split(/(?<=\.) /)[0];
+    if (kind === 'sentence') { var ps = Y.pick(Y.PASSAGES), dot = ps.indexOf('. '); return dot < 0 ? ps : ps.slice(0, dot + 1); }   // no regex lookbehind: older iPhones (Safari < 16.4) cannot read it
     var keys = L[1].replace(/[;,.]/g, function (c) { return i < 14 && c === ';' ? c : c; }), set = L[2];
     var pool = Y.WORDS.filter(only(set.replace(/[;,.]/g, ''))), words = [];
     for (var w = 0; w < Math.min(8, pool.length); w++) words.push(Y.pick(pool));

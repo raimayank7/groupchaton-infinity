@@ -62,7 +62,7 @@ GCOTools.register('pdf-grayscale', function (spot, T) {
     });
   }
   spot.appendChild(T.card([T.dropzone({ accept: 'application/pdf,.pdf', icon: '🖤', label: 'Choose a PDF', hint: 'or drag and drop it here · nothing is uploaded', onFiles: take }), info,
-    T.field('Style', mode), cutF, T.field('Quality', quality),
+    T.field('Style', mode), cutF, T.field('Quality', quality), h('p', { 'class': 'tnote', text: 'Each page becomes a picture, so a scanned PDF usually gets smaller but a PDF of plain typed text can get bigger and its text can no longer be selected.' }),
     T.row([go, T.button('Try a sample', { small: true, onclick: function () { samplePdf().then(function (b) { take([new File([b], 'sample-flyer.pdf', { type: 'application/pdf' })]); run(); }); } })]), status.el, results.el]));
   spot.lastChild.style.gridTemplateColumns = 'minmax(0, 1fr)';
   results.el.style.gridTemplateColumns = 'minmax(0, 1fr)'; var setR = results.set; results.set = function (l, z) { setR(l, z); Array.prototype.forEach.call(results.el.querySelectorAll('.tresults-grid'), function (g) { g.style.gridTemplateColumns = 'minmax(0, 1fr)'; }); };   // long file names must not push the card wider than a phone

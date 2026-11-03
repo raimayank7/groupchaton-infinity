@@ -11,7 +11,7 @@ GCOTools.register('api-tester', function (spot, T) {
     if (/json/i.test(type || '') || /^\s*[\[{]/.test(text)) { try { return JSON.stringify(JSON.parse(text), null, 2); } catch (e) {} }
     return text;
   }
-  var method = T.select(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'].map(function (m) { return [m, m]; }), 'GET'), url = h('input', { type: 'url', 'class': 'tmono', value: T.store.get('api-url', 'https://jsonplaceholder.typicode.com/todos/1'), 'aria-label': 'URL' });
+  var method = T.select(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'].map(function (m) { return [m, m]; }), 'GET'); method.setAttribute('aria-label', 'Method'); var url = h('input', { type: 'url', 'class': 'tmono', value: T.store.get('api-url', 'https://jsonplaceholder.typicode.com/todos/1'), 'aria-label': 'URL' });
   var hdr = h('textarea', { rows: '3', 'class': 'tin tmono', placeholder: 'Content-Type: application/json\nAuthorization: Bearer …', 'aria-label': 'Headers' }), body = h('textarea', { rows: '5', 'class': 'tin tmono', placeholder: '{ "title": "Hello" }', 'aria-label': 'Body' });
   var meta = h('div', { 'class': 'tstats' }), resH = h('textarea', { rows: '5', 'class': 'tout tmono', readonly: true, 'aria-label': 'Response headers' }), resB = h('textarea', { rows: '12', 'class': 'tout tmono', readonly: true, 'aria-label': 'Response body' });
   function send() {

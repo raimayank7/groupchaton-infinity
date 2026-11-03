@@ -5,7 +5,7 @@ GCOTools.register('markdown', function (spot, T) {
   var h = T.h;
   var input = h('textarea', { rows: '14', 'class': 'tmono', placeholder: '# Heading\n\nWrite **Markdown** here…', 'aria-label': 'Markdown', spellcheck: 'false' });
   input.value = T.store.get('markdown', '# Hello, Infinity\n\nWrite **bold**, *italic* and `code`.\n\n- [x] Task done\n- [ ] Task to do\n\n| Tool | Free |\n|------|------|\n| PDF  | Yes  |\n\n> A quote\n\n```js\nconsole.log("hi");\n```');
-  var preview = h('div', { 'class': 'tmd-preview post-body', 'aria-label': 'Preview' });
+  var preview = h('div', { 'class': 'tmd-preview post-body', role: 'region', 'aria-label': 'Preview' });
   var code = h('textarea', { rows: '8', 'class': 'tmono', readonly: true, 'aria-label': 'HTML code' });
   var tab = T.seg([['preview', 'Preview'], ['html', 'HTML code']], 'preview', show);
   var status = T.status();
@@ -21,7 +21,7 @@ GCOTools.register('markdown', function (spot, T) {
       var out = L[0].parse(input.value, { gfm: true, breaks: false });
       var clean = L[1].sanitize(out);
       code.value = clean.trim();
-      preview.innerHTML = clean;
+      preview.innerHTML = clean; T.tame(preview);
       status.clear();
     }).catch(function (e) { status.error(e); });
   }

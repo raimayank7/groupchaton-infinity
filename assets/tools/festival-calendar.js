@@ -94,7 +94,7 @@ GCOTools.register('festival-calendar', function (spot, T) {
   var LANG = (navigator.languages && navigator.languages[0]) || navigator.language || 'en-IN', reg = (LANG.split('-')[1] || '').toUpperCase();
   var country = T.select(Object.keys(C).map(function (k) { return [k, C[k][0]]; }), T.store.get('fest-country', C[reg] ? reg : 'IN')), year = h('input', { type: 'number', min: '1900', max: '2099', value: String(new Date().getFullYear()), 'aria-label': 'Year' });
   var showObs = h('input', { type: 'checkbox', checked: true }), list = h('div', { 'class': 'tlist', 'data-out': '', style: 'grid-template-columns:minmax(0,1fr)' }), moving = h('ul', { style: 'margin:0;padding-left:20px;display:grid;gap:4px' }), info = h('p', { 'class': 'tnote' }), cur = [];
-  var KIND = { p: ['Public holiday', '#16a34a'], r: ['Some regions', '#d97706'], o: ['Observance', '#6366f1'] };
+  var KIND = { p: ['Public holiday', 'var(--t-green)'], r: ['Some regions', 'var(--t-amber)'], o: ['Observance', 'var(--t-indigo)'] };
   function draw() {
     var y = Math.round(+year.value); if (!(y >= 1900 && y <= 2099)) { status.error('Choose a year between 1900 and 2099.'); return; }
     status.clear(); T.store.set('fest-country', country.value);
@@ -104,7 +104,7 @@ GCOTools.register('festival-calendar', function (spot, T) {
     cur.forEach(function (x) {
       var k = key(x.d), days = Math.round((x.d - new Date(today + 'T00:00:00Z')) / 86400000), kd = KIND[x.kind];
       if (!next && days >= 0) next = x;
-      list.appendChild(h('div', { 'class': 'titem', style: days < 0 ? 'opacity:.6' : '' }, [
+      list.appendChild(h('div', { 'class': 'titem', style: days < 0 ? 'opacity:.85' : '' }, [
         h('span', { 'class': 'titem-ic', style: 'flex-direction:column;width:46px;height:46px;font:700 15px/1 var(--ui)' }, [h('span', { text: String(x.d.getUTCDate()) }), h('small', { style: 'font-size:10px;font-weight:600', text: x.d.toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' }) })]),
         h('span', { 'class': 'titem-main' }, [h('b', { text: x.name, style: 'white-space:normal' }), h('small', { text: x.d.toLocaleDateString(undefined, { weekday: 'long', timeZone: 'UTC' }) + (x.obs ? ' · day off on ' + x.obs.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }) : '') + (days === 0 ? ' · today 🎉' : days > 0 ? ' · in ' + days + (days === 1 ? ' day' : ' days') : '') })]),
         h('span', { style: 'font-size:11.5px;font-weight:700;color:' + kd[1] + ';white-space:nowrap', text: kd[0] })]));

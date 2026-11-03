@@ -80,10 +80,10 @@ GCOTools.register('nonogram', function (spot, T) {
     '.tng .q{display:grid;place-items:center;border:1px solid var(--line);margin:-.5px;background:var(--surface);cursor:pointer;font:700 14px/1 var(--ui);color:var(--muted)}.tng .q.on{background:var(--ink)}.tng .q.k{box-shadow:inset 0 0 0 3px var(--accent)}' +
     '.tng .q.b5{border-right:2px solid var(--ink)}.tng .q.d5{border-bottom:2px solid var(--ink)}.tng .q.bad{background:#dc2626}' +
     '.tng .cr{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;font:700 12px/1.25 var(--ui);color:var(--ink);padding-bottom:3px}.tng .rr{display:flex;justify-content:flex-end;align-items:center;gap:5px;font:700 12px/1 var(--ui);color:var(--ink);padding-right:5px;white-space:nowrap}' +
-    '.tng .ok{color:var(--muted);opacity:.5}');
+    '.tng .ok{color:var(--muted);opacity:.75}');
   var wrapEl = h('div', { 'class': 'tng-wrap' }), P, state = [], cursor = 0, drag = null, done = false, t0 = 0, timer = null, mode = 'fill';
   var size = T.select([['pic', '10 × 10 pictures'], ['5', '5 × 5 (quick)'], ['10', '10 × 10 random'], ['15', '15 × 15 (hard)']], T.store.get('ng-size', 'pic'));
-  var gridEl = h('div', { 'class': 'tng', tabindex: '0', role: 'grid', 'aria-label': 'Nonogram grid. Arrow keys move, Space fills, X marks a square as empty.' });
+  var gridEl = h('div', { 'class': 'tng', tabindex: '0', role: 'group', 'aria-label': 'Nonogram grid. Arrow keys move, Space fills, X marks a square as empty.' });
   var modeSeg = T.seg([['fill', '■ Fill'], ['cross', '✕ Mark empty']], 'fill', function (v) { mode = v; });
   var out = h('div', { 'data-out': '', 'aria-live': 'polite', style: 'font-weight:700;text-align:center;min-height:22px' }), clock = h('span', { text: '0:00' }), picN = 0;
   function fmt(s) { return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }

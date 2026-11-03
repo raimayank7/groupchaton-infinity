@@ -64,7 +64,7 @@ GCOTools.register('sudoku', function (spot, T) {
     '.tpad9 button:disabled{opacity:.35}.tpad9 small{display:block;font:500 10px/1.2 var(--ui);color:var(--muted)}');
 
   var mode = 'play', level = T.store.get('sudoku-level', 'easy'), game = null, sel = 40, noteMode = false, undo = [], timer = null;
-  var board = h('div', { 'class': 'tsu', tabindex: '0', role: 'grid', 'aria-label': 'Sudoku board. Use the arrow keys to move and 1 to 9 to fill a square.' });
+  var board = h('div', { 'class': 'tsu', tabindex: '0', role: 'group', 'aria-label': 'Sudoku board. Use the arrow keys to move and 1 to 9 to fill a square.' });
   var pad = h('div', { 'class': 'tpad9' }), clock = h('b', { text: '0:00' }), miss = h('b', { text: '0' }), filled = h('b', { text: '0/81' });
   var showBad = h('input', { type: 'checkbox', checked: T.store.get('sudoku-showbad', true) });
   var levelSel = T.select([['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard'], ['expert', 'Expert']], level);
@@ -73,7 +73,7 @@ GCOTools.register('sudoku', function (spot, T) {
   var out = h('div', { 'data-out': '', 'aria-live': 'polite', style: 'text-align:center;font-weight:700;min-height:22px' });
   var cells = [];
   for (var i = 0; i < 81; i++) (function (i) {
-    var c = h('div', { role: 'gridcell', 'class': (i % 9 === 2 || i % 9 === 5 ? 'c3' : '') + (((i / 9) | 0) === 2 || ((i / 9) | 0) === 5 ? ' r3' : ''), onclick: function () { sel = i; draw(); board.focus({ preventScroll: true }); } });
+    var c = h('div', { role: 'img', 'class': (i % 9 === 2 || i % 9 === 5 ? 'c3' : '') + (((i / 9) | 0) === 2 || ((i / 9) | 0) === 5 ? ' r3' : ''), onclick: function () { sel = i; draw(); board.focus({ preventScroll: true }); } });
     cells.push(c); board.appendChild(c);
   })(i);
   for (var d = 1; d <= 9; d++) (function (d) { pad.appendChild(h('button', { type: 'button', 'aria-label': 'Put ' + d, onclick: function () { put(d); } }, [String(d)])); })(d);

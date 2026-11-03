@@ -52,7 +52,7 @@ GCOTools.register('calendar', function (spot, T) {
         if (!d) return h('td', {});
         var k = key(y, m, d), wd = (j + s) % 7, isH = hol[k], isN = notes[k];
         return h('td', { style: 'text-align:center;padding:2px;white-space:normal' }, [h('button', { type: 'button', title: [isH, isN].filter(Boolean).join(' · ') || null, onclick: function () { sel = k; draw(); },
-          style: 'width:100%;min-height:46px;border-radius:10px;border:' + (k === sel ? '2px solid var(--accent)' : '1px solid transparent') + ';background:' + (k === tk ? 'var(--accent-soft)' : 'transparent') + ';color:' + (isH || wd === 0 ? '#dc2626' : 'var(--ink)') + ';font:600 16px/1.2 var(--ui);cursor:pointer' },
+          style: 'width:100%;min-height:46px;border-radius:10px;border:' + (k === sel ? '2px solid var(--accent)' : '1px solid transparent') + ';background:' + (k === tk ? 'var(--accent-soft)' : 'transparent') + ';color:' + (isH || wd === 0 ? 'var(--t-red)' : 'var(--ink)') + ';font:600 16px/1.2 var(--ui);cursor:pointer' },
           [String(d), h('small', { style: 'display:block;font-size:10px;line-height:1', text: (isH ? '●' : '') + (isN ? '✎' : '') || ' ' })])]);
       })); }))]));
     var sd = sel.split('-'), sdate = new Date(+sd[0], sd[1] - 1, +sd[2]);

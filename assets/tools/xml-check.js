@@ -24,7 +24,7 @@ GCOTools.register('xml-check', function (spot, T) {
       'Namespaces     ' + (r.ns.length ? r.ns.join(', ') : 'none'), 'Most used      ' + r.top.join(', ')].join('\n');
   }
   var tr = T.transformer(spot, { id: 'xml-check', inLabel: 'XML to check', mono: true, rows: 12, outLabel: 'Result', download: false,
-    sample: '<?xml version="1.0"?>\n<order id="1001">\n  <customer>Asha & Sons</customer>\n  <item qty="2">Notebook</item>\n</order>', run: run });
+    sample: '<?xml version="1.0"?>\n<order id="1001">\n  <customer>Asha &amp; Sons</customer>\n  <item qty="2">Notebook</item>\n</order>', run: run });
   tr.status.el.style.whiteSpace = 'pre-wrap';
   T.tests['xml-check'] = function () {
     var f = [], a = check('<a x="1"><b/><b><c/></b></a>'), b = check('<a>\n<b></a>'), c = check('<a>Tom & Jerry</a>');

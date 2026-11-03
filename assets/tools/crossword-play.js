@@ -100,7 +100,7 @@ GCOTools.register('crossword-play', function (spot, T) {
     '.tcw-clue{padding:10px 12px;border-radius:12px;background:var(--surface-2);font-weight:600;min-height:22px}.tcw-lists{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}' +
     '.tcw-lists ol{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:2px}.tcw-lists li{padding:5px 8px;border-radius:8px;cursor:pointer}.tcw-lists li.on{background:var(--accent-soft)}.tcw-lists li.done{color:var(--muted);text-decoration:line-through}');
   var P, cellEls = {}, inputs = {}, cur = { r: 0, c: 0, down: false }, t0 = 0, timer = null, finished = false, key = '';
-  var gridEl = h('div', { 'class': 'tcw', role: 'grid', 'aria-label': 'Crossword grid' }), clue = h('div', { 'class': 'tcw-clue', 'aria-live': 'polite' });
+  var gridEl = h('div', { 'class': 'tcw', role: 'group', 'aria-label': 'Crossword grid' }), clue = h('div', { 'class': 'tcw-clue', 'aria-live': 'polite' });
   var acrossL = h('ol'), downL = h('ol'), out = h('div', { 'data-out': '', 'aria-live': 'polite', style: 'font-weight:700;text-align:center;min-height:22px' }), clock = h('span', { text: '0:00' });
   function fmt(s) { return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
   function wordAt(r, c, down) { return P.words.filter(function (w) { return w.down === down && (down ? w.col === c && r >= w.r && r < w.r + w.w.length : w.r === r && c >= w.col && c < w.col + w.w.length); })[0]; }

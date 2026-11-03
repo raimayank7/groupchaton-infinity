@@ -57,7 +57,7 @@ GCOTools.register('four-in-row', function (spot, T) {
   var COLORS = ['', '#ef4444', '#facc15'], NAMES = ['', 'Red', 'Yellow'];
   var b = [], turn = 1, over = false, mode = T.store.get('c4-mode', 'cpu'), level = T.store.get('c4-level', 'medium'), human = 1, cursor = 3, busy = false, firstHuman = true;
   var score2 = T.store.get('c4-score', { 1: 0, 2: 0, d: 0 });
-  var grid = h('div', { tabindex: '0', role: 'grid', 'aria-label': 'Four in a row board. Press 1 to 7, or arrows and Enter, to drop a disc.', style: 'display:grid;grid-template-columns:repeat(7,1fr);gap:5px;width:min(100%,460px);margin:0 auto;padding:8px;border-radius:16px;background:#1d4ed8;touch-action:manipulation' });
+  var grid = h('div', { tabindex: '0', role: 'group', 'aria-label': 'Four in a row board. Press 1 to 7, or arrows and Enter, to drop a disc.', style: 'display:grid;grid-template-columns:repeat(7,1fr);gap:5px;width:min(100%,460px);margin:0 auto;padding:8px;border-radius:16px;background:#1d4ed8;touch-action:manipulation' });
   var holes = [], arrows = h('div', { 'aria-hidden': 'true', style: 'display:grid;grid-template-columns:repeat(7,1fr);width:min(100%,460px);margin:0 auto;padding:0 8px;box-sizing:border-box;text-align:center;font-size:18px;color:var(--muted)' });
   var msg = h('div', { 'data-out': '', 'aria-live': 'polite', style: 'font:800 19px/1.3 var(--ui);text-align:center;min-height:26px' }), stats = h('div', { 'class': 'tstats' });
   for (var i = 0; i < R * C; i++) (function (i) {

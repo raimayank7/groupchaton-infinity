@@ -35,7 +35,7 @@ GCOTools.register('pdf-sign', function (spot, T) {
   /* --- the signature --- */
   var mode = T.seg([['draw', 'Draw'], ['type', 'Type'], ['upload', 'Upload']], 'draw', function () { sync(); makeSig(); });
   var pad = h('canvas', { width: '600', height: '200', style: 'width:100%;max-width:600px;height:auto;aspect-ratio:3/1;background:#fff;border:1px dashed #94a3b8;border-radius:12px;touch-action:none;cursor:crosshair', 'aria-label': 'Draw your signature here' });
-  var ink = T.select([['#1e3a8a', 'Blue ink'], ['#111111', 'Black ink']], '#1e3a8a');
+  var ink = T.select([['#1e3a8a', 'Blue ink'], ['#111111', 'Black ink']], '#1e3a8a'); ink.setAttribute('aria-label', 'Ink colour');
   var name = h('input', { type: 'text', placeholder: 'Your name', value: '' });
   var FONTS = [['"Segoe Script","Brush Script MT","Lucida Handwriting","Snell Roundhand",cursive', 'Handwriting'], ['italic 600 1em Georgia,serif', 'Elegant'], ['600 1em "Segoe Print","Comic Sans MS",cursive', 'Casual']];
   var style = T.select(FONTS.map(function (x, i) { return [i, x[1]]; }), 0);

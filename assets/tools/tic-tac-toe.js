@@ -27,7 +27,7 @@ GCOTools.register('tic-tac-toe', function (spot, T) {
     return picks[rnd(picks.length)];
   }
   var board = ['', '', '', '', '', '', '', '', ''], turn = 'X', over = false, mode = T.store.get('ttt-mode', 'cpu'), level = T.store.get('ttt-level', 'hard'), human = 'X', score = T.store.get('ttt-score', { X: 0, O: 0, D: 0 }), firstX = true;
-  var grid = h('div', { role: 'grid', 'aria-label': 'Board. Press 1 to 9 to play a square.', tabindex: '0', style: 'display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:min(100%,360px);aspect-ratio:1;margin:0 auto;touch-action:manipulation' });
+  var grid = h('div', { role: 'group', 'aria-label': 'Board. Press 1 to 9 to play a square.', tabindex: '0', style: 'display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:min(100%,360px);aspect-ratio:1;margin:0 auto;touch-action:manipulation' });
   var cells = [], msg = h('div', { 'data-out': '', 'aria-live': 'polite', style: 'font:800 20px/1.3 var(--ui);text-align:center;min-height:28px' }), stats = h('div', { 'class': 'tstats' });
   for (var i = 0; i < 9; i++) (function (i) {
     var c = h('button', { type: 'button', 'aria-label': 'Square ' + (i + 1), style: 'border:0;border-radius:16px;background:var(--surface-2);font:900 clamp(40px,14vw,72px)/1 var(--ui);cursor:pointer;color:var(--ink)', onclick: function () { play(i, true); } });

@@ -19,7 +19,7 @@ GCOTools.register('chmod', function (spot, T) {
   var boxes = [], num = h('input', { type: 'text', 'class': 'tmono tbig', value: '755', maxlength: '10', 'aria-label': 'Permission number or letters', style: 'max-width:220px' });
   var file = h('input', { type: 'text', 'class': 'tmono', value: 'file.sh', 'aria-label': 'File name' });
   var res = h('div', { 'class': 'tkv', 'data-out': '' }), status = T.status();
-  var grid = h('table', { style: 'border-collapse:collapse;width:100%;max-width:420px;text-align:center' }, [h('tr', {}, [h('th')].concat(WHAT.map(function (x) { return h('th', { text: x[1] }); })))]);
+  var grid = h('table', { style: 'border-collapse:collapse;width:100%;max-width:420px;text-align:center' }, [h('tr', {}, [h('th', {}, [h('span', { 'class': 'tvh', text: 'Who' })])].concat(WHAT.map(function (x) { return h('th', { text: x[1] }); })))]);
   WHO.forEach(function (w, i) {
     var tr = h('tr', {}, [h('th', { text: w, style: 'text-align:left;padding:6px 0' })]);
     WHAT.forEach(function (x) {

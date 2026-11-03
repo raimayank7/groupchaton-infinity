@@ -44,7 +44,7 @@ GCOTools.register('eye-chart', function (spot, T) {
   window.addEventListener('resize', function () { clearTimeout(draw.t); draw.t = setTimeout(draw, 200); });
   spot.appendChild(T.card([
     h('p', { style: WARN, text: '⚠️ Not a medical test. This chart can show a change worth checking, but only an optometrist or eye doctor can test and prescribe. See one every 1–2 years, and at once for sudden blur, pain or flashes.' }),
-    h('details', {}, [h('summary', { text: '1. Size the chart to your screen (once)' }), h('p', { 'class': 'tnote', text: 'Hold any bank or ID card against the box and move the slider until the box is exactly as wide as the card.' }), card, slider]),
+    h('details', {}, [h('summary', { text: '1. Size the chart to your screen (once)' }), h('p', { 'class': 'tnote', text: 'Hold any bank or ID card against the box and move the slider until the box is exactly as wide as the card.' }), h('div', { style: 'max-width:100%;overflow-x:auto' }, [card]), slider]),
     h('div', { 'class': 'tgrid2' }, [T.field('2. Your distance from the screen', dist), T.field('Units', unit)]),
     T.seg([['letters', 'Letters'], ['E', 'Tumbling E (no reading needed)']], 'letters', function (v) { kind = v; draw(); }),
     T.row([T.button('New letters', { small: true, onclick: draw }), h('label', { 'class': 'tcheck' }, [mirror, ' Flip for viewing in a mirror'])]),

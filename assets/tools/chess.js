@@ -46,7 +46,7 @@ GCOTools.register('chess', function (spot, T) {
   }
   var GLYPH = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' }, FILES = 'abcdefgh';
   var game = null, sel = null, flip = false, mode = T.store.get('ch-mode', 'cpu'), level = T.store.get('ch-level', 'medium'), human = T.store.get('ch-side', 'w'), last = null, cursor = 'e2', thinking = false, promo = null;
-  var boardEl = h('div', { tabindex: '0', role: 'grid', 'aria-label': 'Chess board. Arrow keys move, Enter picks a piece and its square.', style: 'display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);width:min(100%,480px);aspect-ratio:1;margin:0 auto;border-radius:8px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.25);touch-action:manipulation;user-select:none;-webkit-user-select:none' });
+  var boardEl = h('div', { tabindex: '0', role: 'group', 'aria-label': 'Chess board. Arrow keys move, Enter picks a piece and its square.', style: 'display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);width:min(100%,480px);aspect-ratio:1;margin:0 auto;border-radius:8px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.25);touch-action:manipulation;user-select:none;-webkit-user-select:none' });
   var msg = h('div', { 'aria-live': 'polite', style: 'font:800 18px/1.3 var(--ui);text-align:center;min-height:26px' });
   var moveList = h('div', { 'data-out': '', 'class': 'tmono', style: 'max-height:120px;overflow:auto;font-size:13px;line-height:1.6;color:var(--ink-soft,var(--ink))' });
   var promoRow = h('div', { hidden: true, style: 'display:flex;gap:8px;justify-content:center;align-items:center' });
@@ -70,8 +70,8 @@ GCOTools.register('chess', function (spot, T) {
       var cell = h('div', { 'data-sq': name, style: 'position:relative;display:grid;place-items:center;min-width:0;min-height:0;cursor:pointer;background:' + bg + (cursor === name && document.activeElement === boardEl ? ';box-shadow:inset 0 0 0 3px #2563eb' : ''), 'aria-label': name + (p ? ' ' + (p.color === 'w' ? 'white ' : 'black ') + { k: 'king', q: 'queen', r: 'rook', b: 'bishop', n: 'knight', p: 'pawn' }[p.type] : '') });
       if (p) cell.appendChild(h('span', { style: 'font:400 clamp(26px,9vw,50px)/1 "Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",serif;' + (p.color === 'w' ? 'color:#fff;text-shadow:0 0 2px #000,0 0 2px #000,0 1px 2px #000' : 'color:#1c1917;text-shadow:0 0 2px rgba(255,255,255,.6)'), text: GLYPH[p.type] + '︎' }));
       if (targets[name]) cell.appendChild(h('span', { style: 'position:absolute;border-radius:50%;' + (targets[name] === 'x' ? 'inset:6%;border:4px solid rgba(37,99,235,.55)' : 'width:28%;height:28%;background:rgba(37,99,235,.5)') }));
-      if ((flip ? rr === 0 : rr === 7)) cell.appendChild(h('span', { style: 'position:absolute;right:3px;bottom:1px;font:700 10px/1 var(--ui);color:' + (light ? '#a47a58' : '#ecdfc8'), text: FILES[cc] }));
-      if ((flip ? cc === 7 : cc === 0)) cell.appendChild(h('span', { style: 'position:absolute;left:3px;top:2px;font:700 10px/1 var(--ui);color:' + (light ? '#a47a58' : '#ecdfc8'), text: String(8 - rr) }));
+      if ((flip ? rr === 0 : rr === 7)) cell.appendChild(h('span', { style: 'position:absolute;right:3px;bottom:1px;font:700 10px/1 var(--ui);color:' + (light ? '#6b4a2f' : '#fffaf0'), text: FILES[cc] }));
+      if ((flip ? cc === 7 : cc === 0)) cell.appendChild(h('span', { style: 'position:absolute;left:3px;top:2px;font:700 10px/1 var(--ui);color:' + (light ? '#6b4a2f' : '#fffaf0'), text: String(8 - rr) }));
       boardEl.appendChild(cell);
     }
     var hist = game.history(), txt = [];

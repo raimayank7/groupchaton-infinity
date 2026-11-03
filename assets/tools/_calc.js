@@ -17,7 +17,7 @@
 (function () {
   var T = window.GCOTools, h = T.h;
   var FMT = {
-    money: function (n) { return T.money(n); },
+    money: function (n, dp) { return T.money(n, null, dp); },
     num: function (n) { return T.num(n); },
     int: function (n) { return T.num(Math.round(n), 0); },
     pct: function (n) { return T.num(n, 2) + '%'; },
@@ -25,15 +25,20 @@
   };
   var BAD = /NaN|Infinity|undefined/;
   function clean(t) { return BAD.test(String(t)) ? String(t).replace(/-?Infinity|NaN|undefined/g, '—') : t; }   // blank or impossible input never shows NaN
-  function fmt(v, f) {
+  function fmt(v, f, dp) {
     if (typeof v === 'number' && !isFinite(v)) return '—';
-    var out = fmt0(v, f); return BAD.test(String(out)) ? '—' : out;
+    var out = fmt0(v, f, dp); return BAD.test(String(out)) ? '—' : out;
   }
-  function fmt0(v, f) {
+  function fmt0(v, f, dp) {
     if (typeof f === 'function') return f(v);
     if (typeof f === 'number') return T.num(v, f);
     if (typeof v === 'string') return v;
-    return (FMT[f] || FMT.num)(v);
+    return (FMT[f] || FMT.num)(v, dp);
+  }
+  // one rule for every amount in a result: if a small amount needs paise/cents (₹961.54) and nothing reaches a lakh, all amounts show 2 decimals (₹4,166.67, not ₹4,167)
+  function moneyDp(rows) {
+    var m = rows.filter(function (r) { return r[2] === 'money' && typeof r[1] === 'number' && isFinite(r[1]); }).map(function (r) { return Math.abs(r[1]); });
+    return m.length > 1 && m.some(function (n) { return n < 1000 && Math.round(n * 100) % 100 !== 0; }) && !m.some(function (n) { return n >= 100000; }) ? 2 : null;
   }
   function todayPlus(d) { var t = new Date(); t.setDate(t.getDate() + d); return t.toISOString().slice(0, 10); }
   function dateVal(v) {
@@ -48,7 +53,7 @@
     var els = {}, wraps = {}, hasMoney = def.inputs.some(function (i) { return i.money; });
     var fields = [];
     def.inputs.forEach(function (i) {
-      if (i.type === 'heading') { fields.push(h('h3', { 'class': 'tcalc-h', text: i.label })); return; }
+      if (i.type === 'heading') { fields.push(h('h2', { 'class': 'tcalc-h', text: i.label })); return; }
       var start = saved[i.k] !== undefined && !i.fresh ? saved[i.k] : (i.type === 'date' ? dateVal(i.value) : i.value);
       var el;
       if (i.options) el = T.select(i.options, start);
@@ -67,7 +72,7 @@
       }
     });
     var cur = hasMoney ? T.select(T.CURRENCIES.map(function (c) { return [c, c]; }), T.currency()) : null;
-    var main = h('div', { 'class': 'tcalc-main', 'data-out': '' });
+    var main = h('div', { 'class': 'tcalc-main', 'data-out': '', 'aria-live': 'polite', 'aria-atomic': 'true' });
     var rows = h('div', { 'class': 'tstats tcalc-rows', 'data-out': '' });
     var bars = h('div', { 'class': 'tcalc-bars' });
     var note = h('p', { 'class': 'tnote tcalc-note' });
@@ -101,7 +106,8 @@
     }
     function text() {
       var title = (document.querySelector('h1') || {}).textContent || '';
-      return title.split(':')[0].trim() + '\n' + last.map(function (r) { return r[0] + ': ' + fmt(r[1], r[2]); }).join('\n') + '\n' + location.href.split('#')[0];
+      var dp = moneyDp(last);
+      return title.split(':')[0].trim() + '\n' + last.map(function (r) { return r[0] + ': ' + fmt(r[1], r[2], dp); }).join('\n') + '\n' + location.href.split('#')[0];
     }
     function run() {
       var v = values(), store = {};
@@ -111,14 +117,14 @@
       var out;
       try { tooBig(v); out = def.calc(v, X) || {}; status.clear(); }
       catch (e) { out = { rows: [] }; status.error(new Error(clean(e && e.message || e))); }
-      last = (out.rows || []).filter(Boolean);
+      last = (out.rows || []).filter(Boolean); var dp = moneyDp(last);
       main.innerHTML = ''; rows.innerHTML = ''; bars.innerHTML = ''; table.innerHTML = '';
       if (last.length) {
         main.appendChild(h('span', { text: last[0][0] }));
-        main.appendChild(h('b', { text: fmt(last[0][1], last[0][2]) }));
+        main.appendChild(h('b', { text: fmt(last[0][1], last[0][2], dp) }));
         if (last[0][3]) main.appendChild(h('small', { text: clean(last[0][3]) }));
       }
-      last.slice(1).forEach(function (r) { rows.appendChild(h('div', { 'class': 'tstat' }, [h('b', { text: fmt(r[1], r[2]) }), h('span', { text: clean(r[0] + (r[3] ? ' · ' + r[3] : '')) })])); });
+      last.slice(1).forEach(function (r) { rows.appendChild(h('div', { 'class': 'tstat' }, [h('b', { text: fmt(r[1], r[2], dp) }), h('span', { text: clean(r[0] + (r[3] ? ' · ' + r[3] : '')) })])); });
       rows.hidden = last.length < 2;
       if (out.bars && out.bars.length && out.bars.every(function (b) { return isFinite(b[1]); })) {
         var total = out.bars.reduce(function (a, b) { return a + Math.max(0, b[1]); }, 0) || 1;
@@ -146,7 +152,8 @@
     function tooBig(v) {
       def.inputs.forEach(function (i) {
         var n = v[i.k]; if (typeof n !== 'number' || !isFinite(n) || i.options || i.type) return;
-        var what = (i.label + ' ' + (i.suffix || '')).toLowerCase(), max = /\b(years?|tenure|term|life|age)\b/.test(what) ? 1000 : /\b(months?|weeks?)\b/.test(what) ? 12000 : 1e15;
+        if (i.money) return;   // money is never a count of years or months (“Basic salary a month”)
+        var what = (i.label + ' ' + (i.suffix || '')).toLowerCase().replace(/half-life|\b(a|an|per|each|every)\s+(years?|months?|weeks?)\b/g, ''), max = /\b(years|tenure|term|life|age)\b/.test(what) ? 1000 : /\byear\b/.test(what) ? 9999 : /\b(months?|weeks?)\b/.test(what) ? 12000 : 1e15;
         if (Math.abs(n) > max) throw new Error('“' + i.label + '” is too large: enter at most ' + T.num(max, 0) + '.');
       });
     }

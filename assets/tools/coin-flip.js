@@ -4,7 +4,7 @@ GCOTools.register('coin-flip', function (spot, T) {
   var h = T.h, n = { H: 0, T: 0 }, streak = { side: '', len: 0 };
   function flip() { var a = new Uint8Array(1); crypto.getRandomValues(a); return a[0] & 1 ? 'H' : 'T'; }
   function many(k) { var r = { H: 0, T: 0 }; for (var i = 0; i < k; i++) r[flip()]++; return r; }
-  var coin = h('div', { 'aria-hidden': 'true', style: 'width:150px;height:150px;margin:8px auto;border-radius:50%;display:grid;place-items:center;font:900 54px system-ui;color:#5b3d00;background:radial-gradient(circle at 35% 30%,#fff3b0,#f5b301 55%,#b07d00);box-shadow:0 8px 24px rgba(0,0,0,.25);transition:transform .6s ease', text: '?' });
+  var coin = h('div', { 'aria-hidden': 'true', style: 'width:150px;height:150px;margin:8px auto;border-radius:50%;display:grid;place-items:center;font:900 54px system-ui;color:#3b2600;background:radial-gradient(circle at 35% 30%,#fff3b0,#f5b301 55%,#b07d00);box-shadow:0 8px 24px rgba(0,0,0,.25);transition:transform .6s ease', text: '?' });
   var big = h('div', { 'data-out': '', 'aria-live': 'polite', style: 'font-size:32px;font-weight:800;text-align:center;min-height:42px' }), score = h('div', { 'class': 'tstats' }), turn = 0;
   function show() {
     score.innerHTML = '';

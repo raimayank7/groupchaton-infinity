@@ -298,7 +298,7 @@ html[data-theme='light'] .tool-app :is(input[type='date'],input[type='month'],in
 .ttz{display:grid;gap:6px}
 .ttz-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg)}
 .ttz-row.is-from{border-color:var(--accent)}
-.ttz-row.is-work{background:color-mix(in srgb,var(--ok,#4ADE80) 10%,var(--bg))}
+.ttz-row.is-work{background:rgba(74,222,128,.1);background:color-mix(in srgb,var(--ok,#4ADE80) 10%,var(--bg))}
 .ttz-row.is-night{opacity:.72}
 .ttz-city{flex:1;min-width:0}
 .ttz-city b,.ttz-time b{display:block}
@@ -365,7 +365,7 @@ html[data-theme='light'] .twa-msg.is-me{background:#D9FDD3}
 .tool-app input,.tool-app select,.tool-app textarea{max-width:100%;min-width:0;box-sizing:border-box}
 
 /* Buttons that read as buttons in every theme: a solid fill, a clear edge and a small lift */
-.tbtn:not(.tbtn-primary){background:color-mix(in srgb,var(--ink) 11%,var(--bg));border-color:color-mix(in srgb,var(--ink) 26%,transparent);box-shadow:0 1px 2px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06)}
+.tbtn:not(.tbtn-primary){background:var(--surface-2,var(--bg));border-color:rgba(128,128,140,.4);background:color-mix(in srgb,var(--ink) 11%,var(--bg));border-color:color-mix(in srgb,var(--ink) 26%,transparent);box-shadow:0 1px 2px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06)}
 .tbtn:not(.tbtn-primary):hover{background:color-mix(in srgb,var(--ink) 17%,var(--bg));border-color:color-mix(in srgb,var(--ink) 40%,transparent);filter:none}
 html[data-theme='light'] .tbtn:not(.tbtn-primary){background:#fff;border-color:rgba(40,36,110,.24);box-shadow:0 1px 2px rgba(20,20,51,.1),0 1px 0 rgba(20,20,51,.04)}
 html[data-theme='light'] .tbtn:not(.tbtn-primary):hover{background:#f1f0ff;border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
@@ -386,19 +386,19 @@ html[data-theme='light'] .tbtn-wa:not(.tbtn-primary){border-color:rgba(29,168,81
 .tbtn-wa .t-ic{width:18px;height:18px}
 
 /* Small icon buttons (✕ delete, pin, row actions) keep a visible edge */
-.titem button{border:1px solid color-mix(in srgb,var(--ink) 18%,transparent);min-width:30px;min-height:30px}
+.titem button{border:1px solid rgba(128,128,140,.35);border:1px solid color-mix(in srgb,var(--ink) 18%,transparent);min-width:30px;min-height:30px}
 /* Plain buttons a tool did not style still look like buttons (any class or inline style wins over this); buttons inside a .tpaper preview keep the page's own look */
-:where(.tool-app) button:where(:not([class]):not([style]):not(.tpaper *)){min-height:36px;padding:0 12px;border-radius:10px;border:1px solid color-mix(in srgb,var(--ink) 24%,transparent);background:color-mix(in srgb,var(--ink) 9%,var(--bg));color:var(--ink);font:600 14px/1 var(--ui);cursor:pointer}
+:where(.tool-app) button:where(:not([class]):not([style]):not(.tpaper *)){min-height:36px;padding:0 12px;border-radius:10px;border:1px solid rgba(128,128,140,.4);border:1px solid color-mix(in srgb,var(--ink) 24%,transparent);background:var(--surface-2,var(--bg));background:color-mix(in srgb,var(--ink) 9%,var(--bg));color:var(--ink);font:600 14px/1 var(--ui);cursor:pointer}
 html[data-theme='light'] :where(.tool-app) button:where(:not([class]):not([style]):not(.tpaper *)){background:#fff}
 /* Segmented choices and tabs: a visible track, the chosen one stands out */
-.tseg{background:color-mix(in srgb,var(--ink) 8%,transparent);border:1px solid color-mix(in srgb,var(--ink) 16%,transparent)}
+.tseg{background:rgba(128,128,140,.12);border:1px solid rgba(128,128,140,.3);background:color-mix(in srgb,var(--ink) 8%,transparent);border:1px solid color-mix(in srgb,var(--ink) 16%,transparent)}
 .tseg button[aria-pressed='true']{background:var(--accent);color:var(--accent-ink);box-shadow:0 1px 4px color-mix(in srgb,var(--accent) 40%,transparent)}
 .ttabs button{border-color:color-mix(in srgb,var(--ink) 16%,transparent)}
 .ttabs button[aria-selected='true']{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 
 /* On/off options (.tcheck) are switches */
 .tcheck input[type='checkbox']{-webkit-appearance:none;appearance:none;flex:none;position:relative;width:42px;height:24px;margin:0;border-radius:999px;cursor:pointer;
-  background:color-mix(in srgb,var(--ink) 22%,var(--bg));border:1px solid color-mix(in srgb,var(--ink) 34%,transparent);transition:background .18s,border-color .18s}
+  background:rgba(128,128,140,.35);border:1px solid rgba(128,128,140,.5);background:color-mix(in srgb,var(--ink) 22%,var(--bg));border:1px solid color-mix(in srgb,var(--ink) 34%,transparent);transition:background .18s,border-color .18s}
 .tcheck input[type='checkbox']::before{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.4);transition:transform .18s}
 .tcheck input[type='checkbox']:checked{background:var(--accent);border-color:var(--accent)}
 .tcheck input[type='checkbox']:checked::before{transform:translateX(18px)}
@@ -407,7 +407,7 @@ html[data-theme='light'] :where(.tool-app) button:where(:not([class]):not([style
 html[data-theme='light'] .tcheck input[type='checkbox']:not(:checked){background:#d9dbe8;border-color:#b9bcd3}
 /* The browser's own "Choose file" button matches the others */
 .tool-app input[type='file']{max-width:100%;color:var(--muted);font:14px var(--ui)}
-.tool-app input[type='file']::file-selector-button{margin-right:10px;min-height:36px;padding:0 14px;border-radius:999px;border:1px solid color-mix(in srgb,var(--ink) 26%,transparent);background:color-mix(in srgb,var(--ink) 11%,var(--bg));color:var(--ink);font:600 13.5px var(--ui);cursor:pointer}
+.tool-app input[type='file']::file-selector-button{margin-right:10px;min-height:36px;padding:0 14px;border-radius:999px;border:1px solid rgba(128,128,140,.4);border:1px solid color-mix(in srgb,var(--ink) 26%,transparent);background:var(--surface-2,var(--bg));background:color-mix(in srgb,var(--ink) 11%,var(--bg));color:var(--ink);font:600 13.5px var(--ui);cursor:pointer}
 html[data-theme='light'] .tool-app input[type='file']::file-selector-button{background:#fff;border-color:rgba(40,36,110,.24)}
 html[data-theme='light'] a.tbtn:not(.tbtn-primary){color:var(--ink)}
 /* Link buttons: the theme's link colours (a, a:hover) are the accent itself, which hid the label on an accent button */
@@ -420,3 +420,22 @@ html a.tbtn-primary,html a.tbtn-primary:hover{color:var(--accent-ink)}
 .tool-app input[type=file]{min-height:44px}
 
 .tdrop:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-color:var(--accent)}
+
+/* round-2 tools fixes */
+.tx-x{width:40px;height:40px}
+.gco-page code{overflow-wrap:anywhere}
+/* headings inside rendered previews (Markdown, HTML demos) look like headings but stay out of the page outline */
+.th-demo{display:block;font-weight:800;line-height:1.25;margin:.9em 0 .45em;color:inherit}
+.th-demo1{font-size:1.8em}.th-demo2{font-size:1.45em}.th-demo3{font-size:1.2em}.th-demo4{font-size:1.05em}.th-demo5,.th-demo6{font-size:1em}
+.tmd-preview>.th-demo:first-child,.tpaper>.th-demo:first-child{margin-top:.3em}
+/* Copy button blocked by the browser: the text to copy by hand */
+.tcopy-by-hand{flex-basis:100%;width:100%;display:grid;gap:6px}
+.tcopy-by-hand small{color:var(--muted)}
+.tcopy-by-hand textarea{width:100%;box-sizing:border-box}
+/* status colours that stay readable on both themes */
+.tool-app{--t-red:#b91c1c;--t-green:#15803d;--t-amber:#b45309;--t-indigo:#4f46e5}
+html[data-theme='dark'] .tool-app,html[data-theme='black'] .tool-app{--t-red:#f87171;--t-green:#4ade80;--t-amber:#fbbf24;--t-indigo:#a5b4fc}
+.tvh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.ttz-row.is-night{opacity:1}
+.ttz-row.is-night .ttz-time b{color:var(--muted)}
+@media (max-width:380px){.tool-app .ty-k small{display:none}.tool-app .ty-k{letter-spacing:-.03em}}

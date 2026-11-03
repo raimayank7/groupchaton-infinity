@@ -24,7 +24,7 @@ GCOTools.register('css-animation', function (spot, T) {
   var ease = T.select(['ease', 'ease-in', 'ease-out', 'ease-in-out', 'linear', 'cubic-bezier(.34,1.56,.64,1)', 'steps(4)'].map(function (x) { return [x, x]; }), 'ease');
   var count = h('input', { type: 'number', min: '1', value: '1' }), inf = h('input', { type: 'checkbox', checked: true }), dir = T.select(['normal', 'reverse', 'alternate', 'alternate-reverse'].map(function (x) { return [x, x]; }), 'normal');
   var fill = T.select(['none', 'forwards', 'backwards', 'both'].map(function (x) { return [x, x]; }), 'both'), out = h('textarea', { rows: '10', 'class': 'tout tmono', readonly: true, 'aria-label': 'CSS' });
-  var ball = h('div', { style: 'width:110px;height:110px;margin:30px auto;border-radius:24px;background:linear-gradient(135deg,#38bdf8,#818cf8);display:grid;place-items:center;color:#fff;font:700 15px system-ui', text: 'Hello' });
+  var ball = h('div', { style: 'width:110px;height:110px;margin:30px auto;border-radius:24px;background:linear-gradient(135deg,#0369a1,#4f46e5);display:grid;place-items:center;color:#fff;font:700 15px system-ui', text: 'Hello' });
   var styleEl = document.getElementById('gco-anim-preview') || document.head.appendChild(h('style', { id: 'gco-anim-preview' }));
   function o() { return { anim: anim.value, name: '', dur: +dur.value || 1, delay: +delay.value || 0, ease: ease.value, count: +count.value || 1, inf: inf.checked, dir: dir.value, fill: fill.value }; }
   function draw() {

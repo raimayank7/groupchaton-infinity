@@ -20,7 +20,7 @@ GCOTools.register('html-form', function (spot, T) {
       else L.push('  <input type="' + f.type + '" id="' + id + '" name="' + id + '"' + ph + req + ({ email: ' autocomplete="email"', tel: ' autocomplete="tel" inputmode="tel"' }[f.type] || '') + '>');
     });
     L.push('  <button type="submit">' + esc(o.button || 'Send') + '</button>\n</form>');
-    if (o.css) L.unshift('<style>\n.gco-form { display: grid; gap: 8px; max-width: 420px; font-family: system-ui, sans-serif; }\n.gco-form input, .gco-form select, .gco-form textarea { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; }\n.gco-form label { font-weight: 600; }\n.gco-form fieldset { border: 1px solid #cbd5e1; border-radius: 8px; }\n.gco-form fieldset label { display: block; font-weight: 400; }\n.gco-form button { padding: 10px; border: 0; border-radius: 8px; background: #0ea5e9; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }\n</style>');
+    if (o.css) L.unshift('<style>\n.gco-form { display: grid; gap: 8px; max-width: 420px; font-family: system-ui, sans-serif; }\n.gco-form input, .gco-form select, .gco-form textarea { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; }\n.gco-form label { font-weight: 600; }\n.gco-form fieldset { border: 1px solid #cbd5e1; border-radius: 8px; }\n.gco-form fieldset label { display: block; font-weight: 400; }\n.gco-form button { padding: 10px; border: 0; border-radius: 8px; background: #0369a1; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }\n</style>');
     return L.join('\n');
   }
   var fields = T.store.get('form-fields', null) || [{ label: 'Full name', type: 'text', req: true, ph: '' }, { label: 'Email', type: 'email', req: true, ph: 'you@example.com' }, { label: 'Message', type: 'textarea', req: false, ph: '' }];
@@ -41,7 +41,7 @@ GCOTools.register('html-form', function (spot, T) {
   function draw() {
     save();
     var html = build(fields, { action: action.value.trim(), method: method.value, button: btn.value, css: css.checked });
-    out.value = html; prev.innerHTML = html;
+    out.value = html; prev.innerHTML = html; T.tame(prev);
     var fm = prev.querySelector('form'); if (fm) fm.addEventListener('submit', function (e) { e.preventDefault(); alert('Preview only: on your site the answers go to the address in “Send answers to”.'); });
   }
   [action, method, btn, css].forEach(function (x) { x.addEventListener('input', draw); x.addEventListener('change', draw); });

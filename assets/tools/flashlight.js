@@ -11,7 +11,7 @@ GCOTools.register('flashlight', function (spot, T) {
   }
   var color = T.store.get('torch-color', '#ffffff'), level = 100, mode = 'on', timer = 0, lock = null;
   var panel = h('div', { role: 'button', tabindex: '0', 'aria-label': 'Screen light. Tap for full screen.', style: 'height:min(56vh,460px);border-radius:18px;border:1px solid var(--line);cursor:pointer;transition:background-color .15s;display:grid;place-items:end center;padding:12px;box-sizing:border-box' });
-  var hint = h('small', { style: 'background:rgba(0,0,0,.45);color:#fff;padding:4px 10px;border-radius:999px', text: 'Tap for full screen' });
+  var hint = h('small', { style: 'background:rgba(0,0,0,.78);color:#fff;padding:4px 10px;border-radius:999px', text: 'Tap for full screen' });
   panel.appendChild(hint);
   var pick = h('input', { type: 'color', value: color, 'aria-label': 'Any colour' });
   var bright = h('input', { type: 'range', min: '10', max: '100', value: '100', 'aria-label': 'Brightness' });

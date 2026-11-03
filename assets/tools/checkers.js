@@ -63,7 +63,7 @@ GCOTools.register('checkers', function (spot, T) {
   }
   var b, turn, sel = -1, cursor = 57, over = false, mode = T.store.get('ck-mode', 'cpu'), level = T.store.get('ck-level', 'medium'), human = 'r', quietPlies = 0, last = null;
   var forcedBox = h('input', { type: 'checkbox', checked: T.store.get('ck-forced', true) });
-  var boardEl = h('div', { tabindex: '0', role: 'grid', 'aria-label': 'Checkers board. Arrow keys move, Enter picks a piece and then its destination.', style: 'display:grid;grid-template-columns:repeat(8,1fr);width:min(100%,480px);aspect-ratio:1;margin:0 auto;border:6px solid #7c4a1e;border-radius:10px;overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none' });
+  var boardEl = h('div', { tabindex: '0', role: 'group', 'aria-label': 'Checkers board. Arrow keys move, Enter picks a piece and then its destination.', style: 'display:grid;grid-template-columns:repeat(8,1fr);width:min(100%,480px);aspect-ratio:1;margin:0 auto;border:6px solid #7c4a1e;border-radius:10px;overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none' });
   var squares = [], msg = h('div', { 'data-out': '', 'aria-live': 'polite', style: 'font:800 18px/1.3 var(--ui);text-align:center;min-height:26px' }), counts = h('div', { 'class': 'tstats' });
   for (var i = 0; i < 64; i++) (function (i) { var s = h('div', { style: 'display:grid;place-items:center;min-width:0;position:relative', onclick: function () { tap(i); } }); squares.push(s); boardEl.appendChild(s); })(i);
   var modeSeg = T.seg([['cpu', 'vs computer'], ['two', '2 players']], mode, function (v) { mode = v; T.store.set('ck-mode', v); lvBox.hidden = v !== 'cpu'; reset(); });

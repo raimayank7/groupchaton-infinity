@@ -43,7 +43,7 @@ GCOTools.register('breach-check', function (spot, T) {
   }
   pw.addEventListener('keydown', function (e) { if (e.key === 'Enter') run(); });
   spot.appendChild(T.card([T.field('Password', h('div', { 'class': 'tpass' }, [pw, eye])),
-    T.row([T.button('Check for leaks', { primary: true, onclick: run }), T.button('Try a sample', { small: true, onclick: function () { pw.value = 'password123'; pw.type = 'text'; eye.textContent = 'Hide'; run(); } })]),
+    T.row([T.button('Check for leaks', { primary: true, onclick: run }), T.button('Try a leaked password', { small: true, onclick: function () { pw.value = 'password123'; pw.type = 'text'; eye.textContent = 'Hide'; run(); } })]),
     status.el, out,
     h('p', { 'class': 'tnote', style: 'font-size:14px', text: '🔒 Your password never leaves this device. It is turned into a SHA-1 hash here, and only the first 5 characters of that hash are sent to Have I Been Pwned (api.pwnedpasswords.com). The answer is a list of hundreds of similar hashes, and the match is checked on your device, so nobody learns your password or even whether it was found.' })]));
   spot.lastChild.style.gridTemplateColumns = 'minmax(0, 1fr)';

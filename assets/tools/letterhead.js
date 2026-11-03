@@ -67,7 +67,7 @@ GCOTools.register('letterhead', function (spot, T) {
   var form = h('div', { 'class': 'tgrid2' }), paper = h('div', { 'class': 'tpaper', 'data-out': '', style: 'aspect-ratio:1/1.414;display:flex;flex-direction:column;justify-content:space-between' });
   var cv = h('canvas', { 'class': 'tfit-canvas', style: 'width:100%;max-width:525px;height:auto;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.2)', 'aria-label': 'Business card preview' });
   function update() {
-    paper.innerHTML = letterHead(st) + '<div style="flex:1;padding:22px 4px;color:#9ca3af">Date: …<br><br>Your letter starts here.</div>' + letterFoot(st);
+    paper.innerHTML = letterHead(st) + '<div style="flex:1;padding:22px 4px;color:#6b7280">Date: …<br><br>Your letter starts here.</div>' + letterFoot(st);
     drawCard(cv, st);
   }
   function inp(key, label, ph) { var el = h('input', { type: 'text', placeholder: ph || '' }); el.value = st[key] || ''; el.addEventListener('input', function () { st[key] = el.value; keep(); update(); }); return T.field(label, el); }

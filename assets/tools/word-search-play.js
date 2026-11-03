@@ -45,7 +45,7 @@ GCOTools.register('word-search-play', function (spot, T) {
     '.tws span.f{color:#111}.tws span.s{background:var(--accent);color:var(--accent-ink)}.tws span.k{box-shadow:inset 0 0 0 2px var(--accent)}.tws span.p{background:var(--accent-soft)}' +
     '.tws-list{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;font:600 15px/1.4 var(--ui)}.tws-list .f{text-decoration:line-through;color:var(--muted)}');
   var P, found = {}, start = -1, pending = -1, cursor = 0, t0 = 0, timer = null, done = false;
-  var gridEl = h('div', { 'class': 'tws', tabindex: '0', role: 'grid', 'aria-label': 'Word search grid. Arrow keys move, Space marks the first and last letter.' });
+  var gridEl = h('div', { 'class': 'tws', tabindex: '0', role: 'group', 'aria-label': 'Word search grid. Arrow keys move, Space marks the first and last letter.' });
   var listEl = h('div', { 'class': 'tws-list', 'aria-live': 'polite' }), out = h('div', { 'data-out': '', 'aria-live': 'polite', style: 'font-weight:700;text-align:center;min-height:22px' });
   var theme = T.select(Object.keys(THEMES).map(function (k) { return [k, THEMES[k][0]]; }).concat([['own', 'My own words']]), 'animals');
   var level = T.select([['easy', 'Easy: across and down'], ['medium', 'Medium: + diagonals'], ['hard', 'Hard: any direction, backwards too']], 'medium');

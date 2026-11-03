@@ -90,7 +90,7 @@ GCOTools.register('kakuro', function (spot, T) {
     '.tkk .wt{background:#fff;font:700 clamp(16px,5vw,26px)/1 var(--ui);color:#4338ca;cursor:pointer}.tkk .wt.sel{background:#6d28d9;color:#fff}.tkk .wt.run{background:#e0e7ff}.tkk .wt.bad{color:#dc2626}.tkk .wt.rv{color:#2563eb}');
   var P, val = [], sel = -1, across = true, done = false, t0 = 0, timer = null;
   var size = T.select([['s', 'Small (5 × 5)'], ['m', 'Medium (7 × 7)'], ['l', 'Large (9 × 9)']], T.store.get('kk-size', 's'));
-  var board = h('div', { 'class': 'tkk', tabindex: '0', role: 'grid', 'aria-label': 'Kakuro board. Arrow keys move, 1 to 9 fill.' });
+  var board = h('div', { 'class': 'tkk', tabindex: '0', role: 'group', 'aria-label': 'Kakuro board. Arrow keys move, 1 to 9 fill.' });
   var pad = h('div', { style: 'display:grid;grid-template-columns:repeat(5,1fr);gap:5px;width:min(100%,480px);margin:0 auto' });
   var out = h('div', { 'data-out': '', 'aria-live': 'polite', style: 'font-weight:700;text-align:center;min-height:22px' }), clock = h('span', { text: '0:00' }), help = h('div', { 'class': 'tstatus', 'aria-live': 'polite' });
   for (var d = 1; d <= 9; d++) (function (d) { pad.appendChild(T.button(String(d), { onclick: function () { put(d); } })); })(d);

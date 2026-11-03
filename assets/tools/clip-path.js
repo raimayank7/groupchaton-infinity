@@ -24,10 +24,18 @@ GCOTools.register('clip-path', function (spot, T) {
     handles.forEach(function (x) { x.remove(); }); handles = [];
     if (!Array.isArray(pts)) return;
     pts.forEach(function (p, i) {
-      var d = h('div', { 'aria-label': 'Point ' + (i + 1), style: 'position:absolute;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#fff;border:3px solid #0ea5e9;cursor:grab;left:' + p[0] + '%;top:' + p[1] + '%' });
+      var d = h('div', { role: 'button', tabindex: '0', style: 'position:absolute;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#fff;border:3px solid #0369a1;cursor:grab;left:' + p[0] + '%;top:' + p[1] + '%' });
+      function say() { d.setAttribute('aria-label', 'Point ' + (i + 1) + ' at ' + p[0] + '% across, ' + p[1] + '% down. Arrow keys move it.'); }
+      say();
+      d.addEventListener('keydown', function (e) {   // keyboard: arrows move the point 1% (Shift: 5%)
+        var k = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key]; if (!k) return;
+        e.preventDefault(); var st = e.shiftKey ? 5 : 1;
+        p[0] = Math.max(0, Math.min(100, p[0] + k[0] * st)); p[1] = Math.max(0, Math.min(100, p[1] + k[1] * st));
+        d.style.left = p[0] + '%'; d.style.top = p[1] + '%'; say(); var v3 = css(pts); shape.style.clipPath = v3; shape.style.webkitClipPath = v3; out.value = '-webkit-clip-path: ' + v3 + ';\nclip-path: ' + v3 + ';';
+      });
       d.addEventListener('pointerdown', function (e) {
         d.setPointerCapture(e.pointerId);
-        function mv(ev) { var r = stage.getBoundingClientRect(); p[0] = Math.round(Math.max(0, Math.min(100, (ev.clientX - r.left) / r.width * 100))); p[1] = Math.round(Math.max(0, Math.min(100, (ev.clientY - r.top) / r.height * 100))); d.style.left = p[0] + '%'; d.style.top = p[1] + '%'; var v2 = css(pts); shape.style.clipPath = v2; out.value = '-webkit-clip-path: ' + v2 + ';\nclip-path: ' + v2 + ';'; }
+        function mv(ev) { var r = stage.getBoundingClientRect(); p[0] = Math.round(Math.max(0, Math.min(100, (ev.clientX - r.left) / r.width * 100))); p[1] = Math.round(Math.max(0, Math.min(100, (ev.clientY - r.top) / r.height * 100))); d.style.left = p[0] + '%'; d.style.top = p[1] + '%'; say(); var v2 = css(pts); shape.style.clipPath = v2; out.value = '-webkit-clip-path: ' + v2 + ';\nclip-path: ' + v2 + ';'; }
         function up() { d.removeEventListener('pointermove', mv); d.removeEventListener('pointerup', up); }
         d.addEventListener('pointermove', mv); d.addEventListener('pointerup', up);
       });
@@ -36,7 +44,7 @@ GCOTools.register('clip-path', function (spot, T) {
   }
   pick.addEventListener('change', function () { var s = SHAPES[pick.value]; pts = Array.isArray(s) ? s.map(function (p) { return p.slice(); }) : s; draw(); });
   var copy = T.button('Copy CSS', { primary: true, onclick: function () { T.copy(out.value, copy); } });
-  spot.appendChild(T.card([T.field('Shape', pick), stage, h('p', { 'class': 'tstatus', text: 'Drag the white dots to change the shape.' }), T.field('CSS', out), T.row([copy])]));
+  spot.appendChild(T.card([T.field('Shape', pick), stage, h('p', { 'class': 'tstatus', text: 'Drag the white dots to change the shape (or Tab to a dot and use the arrow keys).' }), T.field('CSS', out), T.row([copy])]));
   draw();
   T.tests['clip-path'] = function () {
     var f = [];
