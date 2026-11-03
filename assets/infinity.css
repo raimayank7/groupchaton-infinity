@@ -2,7 +2,7 @@
    Deep-space design: dark first (a light mode too), glass panels, one colour per tool category.
    Type: Geist Mono (logo, headings, numbers, code) · Geist (text, menus, buttons, forms): see the coding theme at the end
    Designed & Developed by Nivesh Sahayak (https://www.niveshsahayak.in/). All rights reserved: see LICENSE. */
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap');
+/* fonts: a <link> in each page's head (an @import here held back the first paint by one more request) */
 
 /* ===================== tokens ===================== */
 :root{
@@ -28,6 +28,7 @@
   --accent-soft:rgba(139,124,255,.16);
   --accent-ink:#0B0920;
   --grad:linear-gradient(120deg,#8B7CFF 0%,#22D3EE 55%,#F472B6 100%);
+  --grad-btn:var(--grad);
   --glow:0 0 0 1px rgba(139,124,255,.35),0 10px 40px -10px rgba(139,124,255,.55);
   --shadow:0 20px 60px -20px rgba(0,0,0,.7);
   --blur:saturate(160%) blur(16px);
@@ -51,6 +52,7 @@ html[data-theme='light']{
   --accent-soft:rgba(91,69,240,.10);
   --accent-ink:#FFFFFF;
   --grad:linear-gradient(120deg,#5B45F0 0%,#0891B2 55%,#DB2777 100%);
+  --grad-btn:linear-gradient(120deg,#4F3BD9 0%,#0E7490 55%,#BE185D 100%);
   --glow:0 0 0 1px rgba(91,69,240,.25),0 12px 34px -12px rgba(91,69,240,.45);
   --shadow:0 18px 50px -24px rgba(30,25,90,.35);
   --ok:#15803D;--err:#DC2647;
@@ -119,7 +121,8 @@ kbd,.kbar-btn kbd{font:600 11.5px/1 var(--mono);padding:4px 6px;border-radius:6p
 .menu-toggle{display:none}
 @media (max-width:1060px){
   .kbar-btn{min-width:0;width:40px;padding:0;justify-content:center}
-  .kbar-btn span,.kbar-btn kbd{display:none}
+  .kbar-btn kbd{display:none}
+  .kbar-btn:not(.kbar-hero) span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}   /* still its name for screen readers */
 }
 @media (max-width:900px){
   .menu-toggle{display:inline-grid}
@@ -156,7 +159,7 @@ kbd,.kbar-btn kbd{font:600 11.5px/1 var(--mono);padding:4px 6px;border-radius:6p
 .thub-chip{--cc:var(--accent);display:inline-flex;align-items:center;gap:8px;flex:none;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);font:700 14px/1 var(--ui);cursor:pointer;transition:.15s}
 .thub-chip em{font:600 12px/1 var(--mono);font-style:normal;color:var(--muted)}
 .thub-chip:hover{border-color:var(--cc);color:var(--ink)}
-.thub-chip[aria-selected='true']{border-color:var(--cc);color:var(--ink);background:color-mix(in srgb,var(--cc) 16%,transparent);box-shadow:0 0 0 1px var(--cc),0 8px 26px -10px var(--cc)}
+.thub-chip[aria-selected='true'],.thub-chip[aria-pressed='true']{border-color:var(--cc);color:var(--ink);background:color-mix(in srgb,var(--cc) 16%,transparent);box-shadow:0 0 0 1px var(--cc),0 8px 26px -10px var(--cc)}
 .thub-count{margin:0;color:var(--muted);font:600 13px var(--mono)}
 .thub-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:12px}
 .thub-card{--cc:var(--accent);position:relative;display:flex;gap:14px;align-items:flex-start;padding:16px;border-radius:var(--radius);border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;overflow:hidden;backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);transition:transform .18s ease,border-color .18s,box-shadow .18s}
@@ -184,9 +187,10 @@ kbd,.kbar-btn kbd{font:600 11.5px/1 var(--mono);padding:4px 6px;border-radius:6p
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 20px;border-radius:12px;border:1px solid var(--line-strong);background:var(--surface-2);color:var(--ink);font:700 15px/1 var(--ui);text-decoration:none;cursor:pointer}
 .btn:hover{border-color:var(--accent);color:var(--ink)}
 .btn-sm{min-height:38px;padding:0 14px;font-size:14px}
-.btn-primary{border:0;background:var(--grad);color:#fff;box-shadow:var(--glow)}
+.btn-primary{border:0;background:var(--grad-btn);color:var(--accent-ink);box-shadow:var(--glow)}
 html[data-theme='light'] .btn-primary{color:#fff}
-.btn-primary:hover{filter:brightness(1.08);color:#fff}
+.btn-primary:hover{filter:brightness(1.08);color:var(--accent-ink)}
+html[data-theme='light'] .btn-primary:hover{color:#fff}
 .btn:disabled{opacity:.6;cursor:wait}
 .pager-older{margin-left:auto}
 
@@ -313,7 +317,7 @@ article.post{max-width:900px;margin:0 auto}
 .pick .pk-ic svg{width:36px;height:36px}
 .pick .pk-title{font:700 18px/1.3 var(--head)}
 .pick .pk-line{max-width:360px;color:var(--ink-soft)}
-.pick .pk-btn{display:inline-flex;align-items:center;min-height:44px;margin-top:8px;padding:0 22px;border-radius:12px;background:var(--grad);color:#fff;font:700 15px var(--ui);text-decoration:none;box-shadow:var(--glow)}
+.pick .pk-btn{display:inline-flex;align-items:center;min-height:44px;margin-top:8px;padding:0 22px;border-radius:12px;background:var(--grad-btn);color:var(--accent-ink);font:700 15px var(--ui);text-decoration:none;box-shadow:var(--glow)}
 .pick small{color:var(--muted);font-size:12.5px}
 .has-anchor .site-footer{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
 
@@ -332,7 +336,7 @@ article.post{max-width:900px;margin:0 auto}
 @media (max-width:900px){.footer-grid{grid-template-columns:1fr 1fr}}
 @media (max-width:560px){.footer-grid{grid-template-columns:1fr}}
 .footer-about p{color:var(--muted);max-width:340px}
-.site-footer h4{margin:0 0 12px;font:700 13px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink)}
+.site-footer h4,.site-footer .foot-h{margin:0 0 12px;font:700 13px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink)}
 .site-footer ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .site-footer ul a{color:var(--muted);text-decoration:none;font-weight:600;font-size:14.5px}
 .site-footer ul a:hover{color:var(--ink)}
@@ -370,7 +374,7 @@ article.post{max-width:900px;margin:0 auto}
 .thub-sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .thub-sec-head h2{margin:0;font-size:19px;letter-spacing:-.01em}
 .thub-sec-head h2::before{content:'// ';color:var(--muted);font-weight:500}
-.thub-more{border:0;background:none;color:var(--accent-2);font:600 14px var(--mono);cursor:pointer;white-space:nowrap;padding:6px 0}
+.thub-more{border:0;background:none;color:var(--accent-2);font:600 14px var(--mono);cursor:pointer;white-space:nowrap;padding:6px 0;min-height:40px}
 .thub-more:hover{color:var(--ink)}
 .thub-tip{margin:-10px 0 0;color:var(--muted);font-size:14px}
 .thub-pager{display:flex;justify-content:center;margin:6px 0 0}
