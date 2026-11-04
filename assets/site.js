@@ -180,9 +180,20 @@
       if (/^unfill/.test(st || '')) { empty(); o.disconnect(); }
       else if (st === 'filled') { settled = true; o.disconnect(); }
     }).observe(ins, { attributes: true, attributeFilter: ['data-ad-status'] });
-    // no answer at all after 10 s (blocked request, slow network): the space is not left empty either
-    setTimeout(function () { if (!settled && !ins.getAttribute('data-ad-status') && !ins.querySelector('iframe')) empty(); }, 10000);
+    // no real ad after 8 s (ad blocker with a fake ad script, blocked request, slow network): the card takes the space
+    setTimeout(function () { if (!settled && ins.getAttribute('data-ad-status') !== 'filled') empty(); }, 8000);
     try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+  }
+  /* ad blockers: a bait box with ad-like names; hidden or gone = blocked. Some blockers (uBlock Origin) swap Google's
+     script for a stub that claims loaded=true, so adsbygoogle.loaded alone is not enough. */
+  function adsLookBlocked() {
+    if (!(window.adsbygoogle && window.adsbygoogle.loaded)) return true;
+    var b = el('div', { 'class': 'adsbox ad-banner ad-label ad-wide', style: 'position:absolute;left:-9999px;top:0;width:1px;height:1px' });
+    b.innerHTML = '&nbsp;';
+    body.appendChild(b);
+    var cs = getComputedStyle(b), hid = !b.offsetParent || !b.offsetHeight || cs.display === 'none' || cs.visibility === 'hidden';
+    b.parentNode.removeChild(b);
+    return hid;
   }
   C.adSlot = adSlot;   // kit.js puts one between the tool and its guide
 
@@ -430,6 +441,7 @@
     listTitle.hidden = false;
   }
   var homeAd = $('#home-ad');
+  if (homeAd) homeAd.id = 'home-pk';   // ad blockers hide #home-ad, and with it the sponsored card that may take this space
   if (homeAd) { var ha = adSlot('ad-end', A.home); if (ha) homeAd.appendChild(ha); }
 
   // tools: the kit loads each tool's code only where it is used (posts, home catalogue, related tools)
@@ -439,7 +451,7 @@
   window.addEventListener('load', function () {
     if (!C.adClient) return;
     setTimeout(function () {
-      if (NO_ADS || (window.adsbygoogle && window.adsbygoogle.loaded)) return;   // pages without ads never ask to allow them
+      if (NO_ADS || !adsLookBlocked()) return;   // pages without ads never ask to allow them
       html.classList.add('no-ads');   // ads blocked: close up the empty ad boxes, sponsored cards take some of them
       adsBlocked = true;
       $$('.ad-slot').forEach(pickInto);
