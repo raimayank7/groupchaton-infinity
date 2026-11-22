@@ -319,7 +319,7 @@
      card that takes an empty ad space. Cards never sit inside a tool, never on pages without ads (NO_ADS), and every card
      on a page is a different sponsor (pickCard cycles through the list). BREAKS_MAX more cards at most per page. */
   (function sponsorBreaks() {
-    var BREAKS_MAX = 5, EVERY_SEC = 4, EVERY_TOOLS = 16, placed = [], obs = null, host = null;
+    var BREAKS_MAX = 5, EVERY_SEC = 4, EVERY_TOOLS = 16, EVERY_ROWS = 12, placed = [], obs = null, host = null;
     if (NO_ADS || !picks.length) return;
     function has(n) { return n && n.classList && n.classList.contains('pick-break'); }
     function place() {
@@ -327,6 +327,7 @@
       if (obs) obs.disconnect();
       placed = placed.filter(function (c) { if (c.isConnected) return true; picksShown = Math.max(0, picksShown - 1); return false; });
       var secs = $$('.thub-sec', host), grid = secs.length ? null : $('.thub-grid', host);
+      var rows = host.classList.contains('post-list') ? [].filter.call(host.children, function (n) { return n.classList.contains('post-row'); }) : [];   // Help: topic and search lists
       function add(after) {
         if (placed.length >= BREAKS_MAX) return;
         var c = pickCard('break', BREAKS_MAX);
@@ -337,6 +338,8 @@
       }
       if (secs.length >= 8) {
         secs.forEach(function (s, i) { if (i % EVERY_SEC === EVERY_SEC - 2 && !has(s.nextElementSibling)) add(s); });
+      } else if (rows.length >= EVERY_ROWS + 2) {
+        rows.forEach(function (r, i) { if ((i + 1) % EVERY_ROWS === 0 && i < rows.length - 2 && !has(r.nextElementSibling)) add(r); });
       } else if (grid) {
         var cards = $$('.thub-card', grid);
         if (cards.length >= EVERY_TOOLS) cards.forEach(function (t, i) { if ((i + 1) % EVERY_TOOLS === 0 && i < cards.length - 3 && !has(t.nextElementSibling)) add(t); });
@@ -344,7 +347,7 @@
       if (obs) obs.observe(host, { childList: true });
     }
     function attach() {
-      host = $('.thub-body');
+      host = $('.thub-body') || $('.reading > .post-list');
       if (!host) return false;
       obs = new MutationObserver(function () { place(); });
       place();
