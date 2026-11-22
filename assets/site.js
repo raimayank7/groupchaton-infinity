@@ -283,10 +283,22 @@
   var PICK_CLASS = { 'promo-banner': 'pk-img', 'promo-ic': 'pk-ic', 'promo-title': 'pk-title', 'promo-line': 'pk-line', 'cta-btn': 'pk-btn' };
   var picksMax = C.picksMax == null ? 2 : C.picksMax, picksShown = 0;
   var pickTurn = Math.floor(Math.random() * Math.max(picks.length, 1));
-  function pickCard(where) {
+  var shownHosts = {};
+  function cardHost(n) {
+    var a = n.querySelector && n.querySelector('a[href]');
+    try { return new URL(a.getAttribute('href'), location.href).hostname.replace(/^www\./, ''); } catch (e) { return ''; }
+  }
+  function pickCard(where, extra) {
     if (NO_ADS) return null;
-    if (!picks.length || picksShown >= Math.min(picksMax, picks.length)) return null;
-    var card = picks[pickTurn++ % picks.length].cloneNode(true);
+    if (!picks.length || picksShown >= Math.min(picksMax + (extra || 0), picks.length)) return null;
+    /* one card per advertiser on a page while others are left (four Airtel offers in a row looked like spam) */
+    var base = null;
+    for (var t = 0; t < picks.length; t++) {
+      var cand = picks[(pickTurn + t) % picks.length], hh = cardHost(cand);
+      if (!shownHosts[hh]) { base = cand; pickTurn += t + 1; shownHosts[hh] = 1; break; }
+    }
+    if (!base) base = picks[pickTurn++ % picks.length];
+    var card = base.cloneNode(true);
     picksShown++;
     $$('[class]', card).forEach(function (n) {
       n.setAttribute('class', n.getAttribute('class').split(/\s+/).map(function (c) { return PICK_CLASS[c] || c; }).join(' '));
@@ -301,6 +313,49 @@
     return d;
   }
   function pickFor(kind) { return kind === 'in-article' || kind === 'ad-end' ? pickCard(kind) : null; }
+
+  /* More sponsored cards where the page is long (owner, 2026-11-22: "much space to show more cards"). The tool catalogue
+     (home page: one section per category; category pages: one grid of tools) gets a card between its parts, on top of the
+     card that takes an empty ad space. Cards never sit inside a tool, never on pages without ads (NO_ADS), and every card
+     on a page is a different sponsor (pickCard cycles through the list). BREAKS_MAX more cards at most per page. */
+  (function sponsorBreaks() {
+    var BREAKS_MAX = 5, EVERY_SEC = 4, EVERY_TOOLS = 16, placed = [], obs = null, host = null;
+    if (NO_ADS || !picks.length) return;
+    function has(n) { return n && n.classList && n.classList.contains('pick-break'); }
+    function place() {
+      if (!host) return;
+      if (obs) obs.disconnect();
+      placed = placed.filter(function (c) { if (c.isConnected) return true; picksShown = Math.max(0, picksShown - 1); return false; });
+      var secs = $$('.thub-sec', host), grid = secs.length ? null : $('.thub-grid', host);
+      function add(after) {
+        if (placed.length >= BREAKS_MAX) return;
+        var c = pickCard('break', BREAKS_MAX);
+        if (!c) return;
+        c.classList.add('pick-break');
+        after.parentNode.insertBefore(c, after.nextSibling);
+        placed.push(c);
+      }
+      if (secs.length >= 8) {
+        secs.forEach(function (s, i) { if (i % EVERY_SEC === EVERY_SEC - 2 && !has(s.nextElementSibling)) add(s); });
+      } else if (grid) {
+        var cards = $$('.thub-card', grid);
+        if (cards.length >= EVERY_TOOLS) cards.forEach(function (t, i) { if ((i + 1) % EVERY_TOOLS === 0 && i < cards.length - 3 && !has(t.nextElementSibling)) add(t); });
+      }
+      if (obs) obs.observe(host, { childList: true });
+    }
+    function attach() {
+      host = $('.thub-body');
+      if (!host) return false;
+      obs = new MutationObserver(function () { place(); });
+      place();
+      return true;
+    }
+    if (!attach()) {
+      var wait = new MutationObserver(function () { if (attach()) wait.disconnect(); });
+      wait.observe(doc.body, { childList: true, subtree: true });
+      setTimeout(function () { wait.disconnect(); }, 20000);
+    }
+  })();
   function pickInto(slot) {
     if (!slot.parentNode) return false;
     var card = pickFor(slot.getAttribute('data-kind'));
