@@ -590,3 +590,10 @@ html[data-theme='light'] .brand-logo.is-dark,html:not([data-theme='light']) .bra
   .thub-sec .thub-grid{gap:8px}
   .thub-sec .thub-cell>.thub-card{padding:10px}
 }
+/* Home page: no jump when the tool catalogue arrives (P4, 2026-11-26). The catalogue box is empty until kit.js
+   fills it, so everything below it used to sit on the first screen and was then pushed far down. While the box is
+   still empty it keeps one screen of height; the catalogue is much taller, so nothing on screen moves. If loading
+   fails, kit.js writes an error line (.tstatus) and the box returns to its normal height. All screen sizes. */
+html.js .inf-hero~.home-sec [data-gco-tool='hub'] .gco-tool-mount:not(:has(.thub,.tstatus)){min-height:100vh}
+/* Phones up to 429 px: the headline is 3 lines in Geist Mono but 2 in the fallback font shown first, so keep room for 3 lines (no jump when the font arrives) */
+@media (max-width:429px){.inf-hero h1{min-height:3.12em}}
