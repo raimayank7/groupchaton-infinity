@@ -564,6 +564,10 @@ html[data-theme='light'] .brand-logo.is-dark,html:not([data-theme='light']) .bra
   /* category rows: a 2-column tile grid instead of the sideways swipe */
   .thub-sec .thub-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:row;grid-auto-columns:auto;overflow:visible;scroll-snap-type:none;padding-bottom:0;gap:10px}
   .thub-sec .thub-grid>.thub-cell:nth-child(n+5){display:none}
+  .thub-sec .thub-grid>:not(.thub-cell){grid-column:1/-1;min-width:0;max-width:100%}
+  .thub-sec .thub-grid>.thub-cell{min-width:0}
+  .google-auto-placed{max-width:100%}
+  .google-auto-placed>ins.adsbygoogle{width:100%!important;max-width:100%}
   .thub-sec .thub-cell>.thub-card{flex-direction:column;gap:8px;padding:12px;padding-right:12px;min-height:118px}
   .thub-sec .thub-ic{width:40px;height:40px;font-size:20px}
   .thub-sec .thub-card b{font-size:14px;line-height:1.25;padding-right:26px}
@@ -574,7 +578,10 @@ html[data-theme='light'] .brand-logo.is-dark,html:not([data-theme='light']) .bra
   /* tool pages */
   .tbtn,.tbtn-sm,.tplaces .tbtn,.tool-app .tbtn{min-height:44px}
   .tcheck,.tu-copy{min-height:44px}
+  .tbar .tbtn,.tbtn.tbtn-sm,.tool-app .tbtn.tbtn-sm{min-height:44px}
+  .trelated-all a,.post-labels a{display:inline-flex;align-items:center;min-height:44px}
   .brand{min-height:44px}
+  .section-head a{display:inline-flex;align-items:center;min-height:44px}
   .crumb a{display:inline-flex;align-items:center;min-height:44px}
   .site-footer a:not(.si){display:inline-flex;align-items:center;min-height:44px}
 }
